@@ -1,17 +1,14 @@
-import http.server
-import socketserver
+from flask import Flask, request, jsonify
 
-PORT = 8000
+app = Flask(__name__)
 
-class SimpleHTTPRequestHandler(http.server.SimpleHTTPRequestHandler):
-    def do_GET(self):
-        self.send_response(200)
-        self.send_header("Content-type", "text/html")
-        self.end_headers()
-        self.wfile.write(b"Hello, World!")
+@app.route('/message', methods=['POST'])
+def hello_message():
+    data = request.get_json()
+    if data and 'message' in data and data['message'] == 'hello':
+        return jsonify(response="Hello back!")
+    else:
+        return jsonify(error="Expected 'hello' message"), 400
 
-Handler = SimpleHTTPRequestHandler
-
-with socketserver.TCPServer(("0.0.0.0", PORT), Handler) as httpd:
-    print(f"Server started at port {PORT}")
-    httpd.serve_forever()
+if __name__ == '__main__':
+    app.run(debug=True, port=8000)

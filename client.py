@@ -4,6 +4,7 @@ import time
 import argparse
 
 IP = socket.gethostbyname(socket.gethostname())
+#IP = "172.26.91.181"
 PORT = 8888
 ADDR = (IP, PORT)
 SIZE = 1024

@@ -75,6 +75,7 @@ class Server(object):
             print("[{}] Received <{}, {}, {}, request>".format(self.get_time(), client_id, self.server_id, request_num))
             print("[{}] my_state_{} = {} before processing <{}, {}, {}, request>\n".format(self.get_time(), self.server_id, self.my_state, client_id, self.server_id, request_num))
             reply_msg = "Msg received: " + message
+            self.my_state += 1
             conn.send(reply_msg.encode(FORMAT))
             print("[{}] Sending <{}, {}, {}, reply>".format(self.get_time(), client_id, self.server_id, request_num))
             print("[{}] my_state_{} = {} after processing <{}, {}, {}, request>\n".format(self.get_time(), self.server_id, self.my_state, client_id, self.server_id, request_num))
@@ -99,11 +100,3 @@ if __name__ == '__main__':
     server_id = args.server_id
     s = Server(server_id, 0, 1)
     s.start()
-    
-    
-    
-    
-    
-    
-    
-    

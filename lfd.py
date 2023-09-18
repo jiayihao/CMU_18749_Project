@@ -3,6 +3,7 @@ import json
 import time
 import argparse
 
+#IP = "172.26.91.181"
 IP = socket.gethostbyname(socket.gethostname())
 PORT = 8888
 ADDR = (IP, PORT)
@@ -49,11 +50,12 @@ class LocalFaultDetector(object):
                     print(server_id + ALIVE_MSG + "\n")
                     self.heartbeat_count += 1
             except Exception:
-                print(server_id + DEAD_MSG)
+                print("\n" + server_id + DEAD_MSG)
 def getArgs():
     parser = argparse.ArgumentParser()
     parser.add_argument('-l', dest='lfd_id', type=str, help='lfd_id')
     parser.add_argument('-s', dest='server_id', type=str, help='server_id to send')
+    parser.add_argument('-hb', dest='heartbeat_freq', type=int, help='heartbeat_freq')
     args = parser.parse_args()
     return args
           
@@ -61,8 +63,7 @@ if __name__ == '__main__':
     args = getArgs()
     lfd_id = args.lfd_id
     server_id = args.server_id
-    l = LocalFaultDetector(lfd_id, 1)
+    heartbeat_freq = args.heartbeat_freq
+    l = LocalFaultDetector(lfd_id, heartbeat_freq)
     l.connect(server_id)
     l.sendHeartbeat(server_id)
-        
-    

@@ -19,12 +19,6 @@ CLIENT_HEADER = "client"
 HEARTBEAT_RELPY = "Yes, I am."
 
 class Server(object):
-    
-    connections = False
-    
-    '''
-    i_am_ready = 0 not ready; = 1 ready
-    '''
     def __init__(self, server_id, my_state, i_am_ready):
         self.server_id = server_id
         self.my_state = my_state

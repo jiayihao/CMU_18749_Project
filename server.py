@@ -72,7 +72,7 @@ class Server(object):
         print("Received " + message + " from " + client_id)
         print("[{}] Received <{}, {}, {}, request>".format(self.get_time(), client_id, self.server_id, request_num))
         print("[{}] my_state_{} = {} before processing <{}, {}, {}, request>".format(self.get_time(), self.server_id, self.my_state, client_id, self.server_id, request_num))
-        print("Total response number is", self.response_num + "\n")
+        print("Total response number is", self.response_num, "\n")
         while self.my_state != WAITING:
             continue
         self.my_state = client_id
@@ -87,7 +87,7 @@ class Server(object):
         self.my_state = WAITING
         print("[{}] Sending <{}, {}, {}, reply>".format(self.get_time(), client_id, self.server_id, request_num))
         print("[{}] my_state_{} = {} after processing <{}, {}, {}, request>".format(self.get_time(), self.server_id, self.my_state, client_id, self.server_id, request_num))
-        print("Total response number is", self.response_num + "\n")
+        print("Total response number is", self.response_num, "\n")
         
         
     

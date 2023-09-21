@@ -25,6 +25,7 @@ class Server(object):
         self.my_state = WAITING
         self.response_num = 0
         self.active_connect = 0
+        #self.queue[i] = addr
         self.queue = []
         
         print("\n[STARTING] Starting server...\n")
@@ -56,12 +57,15 @@ class Server(object):
                     message = msg["message"]
                     self.handle_lfd(conn, message, lfd_id)
                 elif header == CLIENT_HEADER:
-                    self.handle_client(conn, msg)
+                    self.handle_client(conn, msg, addr)
                 else:
                     conn.close()
                     break
             except Exception:
                 print(str(addr) + " is disconnected...\n")
+                #移除对应的client
+                if header == CLIENT_HEADER:
+                    self.queue.remove(addr)
                 self.my_state = WAITING
                 self.active_connect -= 1
                 break
@@ -71,7 +75,7 @@ class Server(object):
         conn.send(HEARTBEAT_RELPY.encode(FORMAT))
         print("Reply " + HEARTBEAT_RELPY + " to " + lfd_id + "\n")
             
-    def handle_client(self, conn, msg):
+    def handle_client(self, conn, msg, addr):
             
         client_id = msg["client_id"]
         request_num = msg["request_num"]
@@ -80,8 +84,8 @@ class Server(object):
         print("[{}] Received <{}, {}, {}, request>".format(self.get_time(), client_id, self.server_id, request_num))
         print("[{}] my_state_{} = {} before processing <{}, {}, {}, request>".format(self.get_time(), self.server_id, self.my_state, client_id, self.server_id, request_num))
         print("Total response number is", self.response_num, "\n")
-        self.queue.append([client_id, request_num])
-        while self.my_state != WAITING or [client_id, request_num] != self.queue[0]:
+        self.queue.append(addr)
+        while self.my_state != WAITING or addr != self.queue[0]:
             continue
         print("My_state_{} = {}. I am ready...\n".format(self.server_id, WAITING))
         self.my_state = client_id

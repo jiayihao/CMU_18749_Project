@@ -82,12 +82,12 @@ class Server(object):
         message = msg["message"]
         print("Received " + message + " from " + client_id)
         print("[{}] Received <{}, {}, {}, request>".format(self.get_time(), client_id, self.server_id, request_num))
-        print("[{}] my_state_{} = {} before processing <{}, {}, {}, request>".format(self.get_time(), self.server_id, self.my_state, client_id, self.server_id, request_num))
-        print("Total response number is", self.response_num, "\n")
+        print("[{}] my_state_{} = {} before processing <{}, {}, {}, request>".format(self.get_time(), self.server_id, self.response_num, client_id, self.server_id, request_num))
+        #print("Total response number is", self.response_num, "\n")
         self.queue.append(addr)
         while self.my_state != WAITING or addr != self.queue[0]:
             continue
-        print("My_state_{} = {}. I am ready...\n".format(self.server_id, WAITING))
+        #print("My_state_{} = {}. I am ready...\n".format(self.server_id, WAITING))
         self.my_state = client_id
         if message == DISCONNECT_MSG:
             self.my_state = WAITING
@@ -102,8 +102,8 @@ class Server(object):
             self.queue.pop(0)
             conn.send(reply_msg.encode(FORMAT))
             print("[{}] Sending <{}, {}, {}, reply>".format(self.get_time(), client_id, self.server_id, request_num))
-            print("[{}] my_state_{} = {} after processing <{}, {}, {}, request>".format(self.get_time(), self.server_id, self.my_state, client_id, self.server_id, request_num))
-            print("Total response number is", self.response_num, "\n")
+            print("[{}] my_state_{} = {} after processing <{}, {}, {}, request>".format(self.get_time(), self.server_id, self.response_num, client_id, self.server_id, request_num))
+            #print("Total response number is", self.response_num, "\n")
         
         
     

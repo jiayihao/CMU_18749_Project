@@ -12,13 +12,14 @@ DISCONNECT_MSG = "q"
 SERVERS = {"S1": 8888}
 
 class Client(object):
-    def __init__(self, client_id):
+    def __init__(self, client_id, addr=ADDR):
         self.client_id = client_id
         self.request_num = 101
+        self.addr = addr
         
     def connect(self, server_id):
         self.client = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        self.client.connect(ADDR)
+        self.client.connect(self.addr)
         print("[CONNECTED] {} connected to {} at {}:{}".format(self.client_id, server_id, IP, SERVERS[server_id]))
         
     def sendMessage(self, server_id):
@@ -56,7 +57,9 @@ class Client(object):
 def getArgs():
     parser = argparse.ArgumentParser()
     parser.add_argument('-c', dest='client_id', type=str, help='client_id')
-    parser.add_argument('-s', dest='server_id', type=str, help='server_id to send')
+    parser.add_argument('-s', dest='server_id', type=str, help='server_id to send', default='S1')
+    parser.add_argument('-host', dest='host', type=str, help='host', default=IP)
+    parser.add_argument('-p', dest='port', type=str, help='port', default=PORT)
     args = parser.parse_args()
     return args
 
@@ -64,6 +67,6 @@ if __name__ == '__main__':
     args = getArgs()
     client_id = args.client_id
     server_id = args.server_id
-    c = Client(client_id)
+    c = Client(client_id, (args.host, int(args.port)))
     c.connect(server_id)
     c.sendMessage(server_id)

@@ -3,7 +3,6 @@ import json
 import time
 import argparse
 
-#IP = "172.26.91.181"
 IP = socket.gethostbyname(socket.gethostname())
 PORT = 8888
 ADDR = (IP, PORT)
@@ -17,14 +16,17 @@ DEAD_MSG = " is dead"
 HEARTBEAT_RELPY = "Yes, I am."
 
 class LocalFaultDetector(object):
-    def __init__(self, lfd_id, heartbeat_freq):
+    def __init__(self, lfd_id, heartbeat_freq, addr=ADDR):
         self.lfd_id = lfd_id
         self.heartbeat_freq = heartbeat_freq
         self.heartbeat_count = 1
+        self.addr = addr
         
     def connect(self, server_id):
         self.lfd = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        self.lfd.connect(ADDR)
+        self.lfd.connect(self.addr)
+        # print self ip        
+        print(f"[STARTING] Starting server on {ADDR}...\n")
         print("[CONNECTED] {} connected to {} at {}:{}".format(self.lfd_id, server_id, IP, SERVERS[server_id]))
     
     def sendHeartbeat(self, server_id):
@@ -54,8 +56,10 @@ class LocalFaultDetector(object):
 def getArgs():
     parser = argparse.ArgumentParser()
     parser.add_argument('-l', dest='lfd_id', type=str, help='lfd_id')
-    parser.add_argument('-s', dest='server_id', type=str, help='server_id to send')
-    parser.add_argument('-hb', dest='heartbeat_freq', type=int, help='heartbeat_freq')
+    parser.add_argument('-s', dest='server_id', type=str, help='server_id to send', default='S1')
+    parser.add_argument('-hb', dest='heartbeat_freq', type=int, help='heartbeat_freq', default=2)
+    parser.add_argument('-host', dest='host', type=str, help='host', default=IP)
+    parser.add_argument('-p', dest='port', type=str, help='port', default=PORT)
     args = parser.parse_args()
     return args
           
@@ -64,6 +68,6 @@ if __name__ == '__main__':
     lfd_id = args.lfd_id
     server_id = args.server_id
     heartbeat_freq = args.heartbeat_freq
-    l = LocalFaultDetector(lfd_id, heartbeat_freq)
+    l = LocalFaultDetector(lfd_id, heartbeat_freq, addr=(args.host, int(args.port)))
     l.connect(server_id)
     l.sendHeartbeat(server_id)

@@ -28,11 +28,11 @@ class Server(object):
         #self.queue[i] = addr
         self.queue = []
         
-        print("\n[STARTING] Starting server...\n")
+        private_ip = socket.gethostbyname(socket.gethostname())
+        print(f"[STARTING] Starting server on {private_ip}:{PORT}")
         self.server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self.server.bind(ADDR)
         self.server.listen()
-        print("\n[LISTENING] Server is listening on {}:{}...\n".format(IP, PORT))
         
     def start(self):
         while True:

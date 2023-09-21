@@ -8,7 +8,7 @@ import json
 import argparse
 
 
-IP = socket.gethostbyname(socket.gethostname())
+IP = socket.gethostbyname("")
 PORT = 8888
 ADDR = (IP, PORT)
 SIZE = 1024
@@ -64,8 +64,8 @@ class Server(object):
             except Exception:
                 print(str(addr) + " is disconnected...\n")
                 #移除对应的client
-                if header == CLIENT_HEADER:
-                    self.queue.remove(addr)
+                # if header == CLIENT_HEADER:
+                #     self.queue.remove(addr)
                 self.my_state = WAITING
                 self.active_connect -= 1
                 break

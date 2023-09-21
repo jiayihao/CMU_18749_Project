@@ -25,6 +25,7 @@ class Server(object):
         self.my_state = WAITING
         self.response_num = 0
         self.active_connect = 0
+        self.queue = []
         
         print("\n[STARTING] Starting server...\n")
         self.server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -79,20 +80,23 @@ class Server(object):
         print("[{}] Received <{}, {}, {}, request>".format(self.get_time(), client_id, self.server_id, request_num))
         print("[{}] my_state_{} = {} before processing <{}, {}, {}, request>".format(self.get_time(), self.server_id, self.my_state, client_id, self.server_id, request_num))
         print("Total response number is", self.response_num, "\n")
-        while self.my_state != WAITING:
+        self.queue.append([client_id, request_num])
+        while self.my_state != WAITING or [client_id, request_num] != self.queue[0]:
             continue
         print("My_state_{} = {}. I am ready...\n".format(self.server_id, WAITING))
         self.my_state = client_id
         if message == DISCONNECT_MSG:
             self.my_state = WAITING
+            self.queue.pop(0)
             print("Goodbye " + client_id + "\n")
             conn.close()
         else:
             reply_msg = "Msg received: " + message
             time.sleep(10)
-            conn.send(reply_msg.encode(FORMAT))
             self.response_num += 1
             self.my_state = WAITING
+            self.queue.pop(0)
+            conn.send(reply_msg.encode(FORMAT))
             print("[{}] Sending <{}, {}, {}, reply>".format(self.get_time(), client_id, self.server_id, request_num))
             print("[{}] my_state_{} = {} after processing <{}, {}, {}, request>".format(self.get_time(), self.server_id, self.my_state, client_id, self.server_id, request_num))
             print("Total response number is", self.response_num, "\n")

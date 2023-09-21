@@ -38,9 +38,10 @@ class Client(object):
                 self.client.close()
             else:
                 to_send = json.dumps(data)
-                self.client.send(to_send.encode(FORMAT))
                 print("Sent " + to_send + " to " + server_id)
                 print("[{}] Sent <{}, {}, {}, request>\n".format(self.get_time(), self.client_id, server_id, self.request_num))
+                self.request_num += 1
+                self.client.send(to_send.encode(FORMAT))
                 msg = self.client.recv(SIZE).decode(FORMAT)
                 if not msg:
                     connected = False
@@ -49,7 +50,6 @@ class Client(object):
                 else:
                     print("Received " + msg + " from " + server_id)
                     print("[{}] Received <{}, {}, {}, reply>\n".format(self.get_time(), self.client_id, server_id, self.request_num))
-                self.request_num += 1
     def get_time(self):
         return time.strftime("%Y-%m-%d %H:%M:%S", time.localtime())
 

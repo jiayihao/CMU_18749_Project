@@ -103,14 +103,6 @@ class Server(object):
             conn.send(reply_msg.encode(FORMAT))
             print("[{}] Sending <{}, {}, {}, reply>".format(self.get_time(), client_id, self.server_id, request_num))
             print("[{}] my_state_{} = {} after processing <{}, {}, {}, request>".format(self.get_time(), self.server_id, self.response_num, client_id, self.server_id, request_num))
-            #print("Total response number is", self.response_num, "\n")
-        
-        
-    
-
-    # def close(self):
-    #     self.s.close()
-    #     sys.exit("\n" + self.get_time() + "Server close...")       
     
     def get_time(self):
         return time.strftime("%Y-%m-%d %H:%M:%S", time.localtime())

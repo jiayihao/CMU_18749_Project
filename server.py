@@ -76,7 +76,7 @@ class Server(object):
         print("Reply " + HEARTBEAT_RELPY + " to " + lfd_id + "\n")
             
     def handle_client(self, conn, msg, addr):
-            
+       
         client_id = msg["client_id"]
         request_num = msg["request_num"]
         message = msg["message"]

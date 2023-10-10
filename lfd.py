@@ -71,3 +71,5 @@ if __name__ == '__main__':
     l = LocalFaultDetector(lfd_id, heartbeat_freq, addr=(args.host, int(args.port)))
     l.connect(server_id)
     l.sendHeartbeat(server_id)
+    
+    

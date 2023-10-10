@@ -56,7 +56,8 @@ class Server(object):
                 if header == LFD_HEADER:
                     lfd_id = msg["lfd_id"]
                     message = msg["message"]
-                    self.handle_lfd(conn, message, lfd_id)
+                    heartbeat_count = msg["heartbeat_count"]
+                    self.handle_lfd(conn, message, lfd_id, heartbeat_count)
                 elif header == CLIENT_HEADER:
                     self.handle_client(conn, msg, addr)
                 else:
@@ -71,10 +72,10 @@ class Server(object):
                 self.active_connect -= 1
                 break
     
-    def handle_lfd(self, conn, msg, lfd_id):
-        print("Received " + msg + " from " + lfd_id)
+    def handle_lfd(self, conn, msg, lfd_id, heartbeat_count):
+        print(f"[{heartbeat_count}] Received {msg} from {lfd_id}")
         conn.send(HEARTBEAT_RELPY.encode(FORMAT))
-        print("Reply " + HEARTBEAT_RELPY + " to " + lfd_id + "\n")
+        print(f"[{heartbeat_count}] Reply {HEARTBEAT_RELPY} to {lfd_id} \n")
             
     def handle_client(self, conn, msg, addr):
        

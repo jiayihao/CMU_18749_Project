@@ -83,7 +83,8 @@ class LocalFaultDetector(object):
                     "header": "lfd",
                     "lfd_id": self.lfd_id,
                     "server_id": server_id,
-                    "message": HEARTBEAT_MSG
+                    "message": HEARTBEAT_MSG,
+                    "heartbeat_count": self.heartbeat_count
                     }
             try:
                 self.to_server.send(json.dumps(data).encode(FORMAT))

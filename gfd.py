@@ -120,10 +120,10 @@ class GlobalFaultDetector():
     self.print_memberships()
 
   def print_memberships(self):
-    print(f"{self.gfd_id}: {self.membercount} members")
+    p = f"GFD: {self.membercount} members: "
     for mem in self.memberships:
-      print(f"{mem} : {self.memberships[mem]}")
-    print()
+      p += f"{mem}, "
+    print(p.rstrip(', '))
 
 def getArgs():
   parser = argparse.ArgumentParser()

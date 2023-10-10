@@ -9,8 +9,8 @@ import argparse
 
 
 IP = socket.gethostbyname("")
-PORT = 8888
-ADDR = (IP, PORT)
+# PORT = 7777
+# ADDR = (IP, PORT)
 SIZE = 1024
 FORMAT = "utf-8"
 DISCONNECT_MSG = "q"
@@ -20,8 +20,9 @@ HEARTBEAT_RELPY = "Yes, I am."
 WAITING = "Waiting..."
 
 class Server(object):
-    def __init__(self, server_id):
+    def __init__(self, server_id, port):
         self.server_id = server_id
+        self.port = port
         self.my_state = WAITING
         self.response_num = 0
         self.active_connect = 0
@@ -29,9 +30,9 @@ class Server(object):
         self.queue = []
         
         private_ip = socket.gethostbyname(socket.gethostname())
-        print(f"[STARTING] Starting server on {private_ip}:{PORT}")
+        print(f"[STARTING] Starting server on {private_ip}:{self.port}")
         self.server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        self.server.bind(ADDR)
+        self.server.bind((IP, self.port))
         self.server.listen()
         
     def start(self):
@@ -110,11 +111,13 @@ class Server(object):
 def getArgs():
     parser = argparse.ArgumentParser()
     parser.add_argument('-s', dest='server_id', type=str, help='server_id to send')
+    parser.add_argument('-p', dest='port', type=int, help='port')
     args = parser.parse_args()
     return args   
 
 if __name__ == '__main__':
     args = getArgs()
     server_id = args.server_id
-    s = Server(server_id)
+    port = args.port
+    s = Server(server_id, port)
     s.start()

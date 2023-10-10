@@ -1,6 +1,6 @@
 import socket, argparse, time, json, threading, socket
 
-PORT = 8888
+PORT = 1234
 IP = socket.gethostbyname(socket.gethostname())
 LISTENING_INTERVAL = 3
 FORMAT = 'utf-8'
@@ -9,116 +9,134 @@ HEARTBEAT_MSG = "Are you alive?"
 ALIVE_MSG = " is alive"
 DEAD_MSG = " is dead"
 HEARTBEAT_RELPY = "Yes, I am."
+LFD_HEADER = "lfd"
+HEARTBEAT_ISSUE = "heartbeat"
+REPLICA_ISSUE = "replica"
 
 class GlobalFaultDetector():
-  def __init__(self, heartbeat_freq, ip = IP, port = PORT):
+  def __init__(self, gfd_id, heartbeat_freq, ip = IP, port = PORT):
     self.heartbeat_freq = heartbeat_freq
-    self.heartbeat_count = 0
     self.lfds_addr = {} # dic of lfd ips {str_id: addr}
-    self.live_lfds = set()
     self.memberships = {}
     self.membercount = 0
     self.port = port
     self.ip = ip 
+    self.gfd_id = gfd_id
 
-    print(f"[STARTING] Starting server on {self.ip}:{self.port}")
-    self.server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    self.server.bind( (self.ip, self.port) )
-    self.server.listen()
+    # self.heartbeat_msg = {
+    #      "header": "gfd",
+    #      "gfd_id": self.gfd_id,
+    #      "message": HEARTBEAT_MSG
+    #   } 
+    self.heartbeat_msg = HEARTBEAT_MSG
+    self.heartbeat_msg = self.heartbeat_msg.encode(FORMAT)
+
+    print(f"[STARTING] Starting {self.gfd_id} on {self.ip}:{self.port}")
+    print()
+    
+    self.print_memberships()
+
+    self.gfd = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    self.gfd.bind( (self.ip, self.port) )
+    self.gfd.listen()
   
   def start(self):
-    thread_heartbeats = threading.Thread(target=self.sending_heartbeats,args=())
-    thread_listening = threading.Thread(target=self.listening_conn, args=())
-    thread_heartbeats.start()
-    thread_listening.start()
-
-  def sending_heartbeats(self):
-    print('start sending heartbeat')
-    threads = []
-    while(True):
-      time.sleep(LISTENING_INTERVAL)
-      for lfd_id, lfd_addr  in self.lfds_addr.items():
-        if lfd_id not in self.live_lfds:
-          thread = threading.Thread(target=self.sending_heartbeat, args=(lfd_id, lfd_addr)) 
-          thread.start()
-          threads.append(thread)
-          self.live_lfds.add(lfd_id)
-
-
-  def sending_heartbeat(self, lfd_id, lfd_addr):
-    gfd = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    gfd.connect( lfd_addr )
-    # print self ip        
-    print(f"[STARTING] Starting server on { (self.ip, self.port) }...\n")
-    print("[CONNECTED] {} connected to {} at {}".format(self.gfd, lfd_id, lfd_addr))
-
     while True:
-      time.sleep(self.heartbeat_freq)
-      data = {
-         "header": "gfd",
-         "message": HEARTBEAT_MSG
-      } 
+      conn, addr = self.gfd.accept()
+      thread = threading.Thread(target=self.handle_lfd_connection, args = (conn, addr))
+      thread.daemon = True
+      thread.start()
+
+  def handle_lfd_connection(self, conn, addr):
+    while True:
+        try:
+          msg = conn.recv(SIZE).decode(FORMAT)
+          msg = json.loads(msg)
+          header = msg["header"]
+          if header != LFD_HEADER:
+            conn.close()
+            return
+          issue = msg["issue"]
+          lfd_id = msg["lfd_id"]
+          server_id = msg["server_id"]
+          message = msg["message"]
+          if issue == HEARTBEAT_ISSUE:
+             self.lfds_addr[lfd_id]=addr
+             self.sending_heartbeat(conn, server_id, lfd_id)
+          elif issue == REPLICA_ISSUE:
+              self.handle_replica(message)
+          else:
+            conn.close()
+            return
+        except Exception:
+            conn.close()
+            break
+
+
+  def sending_heartbeat(self, conn, server_id, lfd_id):
+    while True:
       try:
-          gfd.send(json.dumps(data).encode(FORMAT))
-          print("[{}] {} sending heartbeat to {}".format(self.heartbeat_count, self.lfd_id, lfd_id))
+          conn.send(self.heartbeat_msg)
+          print(f" {self.gfd_id} sending heartbeat to {lfd_id}")
       except:
           continue
       
       try:
-          msg = gfd.recv(SIZE).decode(FORMAT)
+          msg = conn.recv(SIZE).decode(FORMAT)
           if msg != HEARTBEAT_RELPY:
-              print(lfd_id + DEAD_MSG)
+              print(lfd_id + DEAD_MSG + "\n")
+              self.lfds_addr.pop(lfd_id)
+              self.memberships.pop(server_id)
+              self.membercount -= 1
+              self.print_memberships()
           else:
               print(lfd_id + ALIVE_MSG + "\n")
-              self.heartbeat_count += 1
       except Exception:
-          print("\n" + lfd_id + DEAD_MSG)
+          print("\n[EXCEPTION] " + lfd_id + DEAD_MSG)
+          self.lfds_addr.pop(lfd_id)
+          self.memberships.pop(server_id)
+          self.membercount -= 1
+          self.print_memberships()
+          conn.close()
+          return
 
-  def listening_conn(self):
-    print('start listening conn')
-    while True:
-      conn, addr = self.server.accept()
-      thread = threading.Thread(target=self.handle_lfd, args = (conn, addr))
-      thread.start()
-      print(f"\n[ACTIVE CONNECTIONS] {str(len(self.lfds_addr))}\n")
+      time.sleep(self.heartbeat_freq)
   
-  def handle_lfd(self, conn, addr):
-    print("\n[NEW CONNECTION] {} connected\n".format(addr))
-    while True:
-      try:
-        msg = conn.recv(SIZE).decode(FORMAT)
-        msg = json.loads(msg)
-        lfd_id = msg["lfd_id"]
-        message = msg["message"]
-        server_id =  message[:-2]
-        if lfd_id not in self.lfds_addr.keys():
-           self.lfds_addr[lfd_id]=addr
-        if "add" in message:
-           self.memberships[server_id] = True
-           self.membercount += 1
-        elif "delete" in message:
-           self.membership[server_id] = False
-           self.membercount -= 1
-           
-        else:
-          example_msg = "LFD1: add replica S1" 
-          print(f"INVALID msg: {message} ")
-          print(f"EXPECTED: {example_msg} such format")
+  def handle_replica(self, message):
+    # msg = json.loads(msg)
+    message = message.split()
+    server_id =  message[-1]
+    if "add" in message:
+      self.memberships[server_id] = True
+      self.membercount += 1
+    elif "delete" in message:
+      self.memberships.pop(server_id)
+      self.membercount -= 1
+    else:
+      example_msg = "LFD1: add replica S1" 
+      print(f"INVALID msg: {message} ")
+      print(f"EXPECTED: {example_msg} such format")
+      print()
+    self.print_memberships()
 
-      except Exception:
-        print(str(addr) + " is disconnected...\n")
-        break
+  def print_memberships(self):
+    print(f"{self.gfd_id}: {self.membercount} members")
+    for mem in self.memberships:
+      print(f"{mem} : {self.memberships[mem]}")
+    print()
 
 def getArgs():
   parser = argparse.ArgumentParser()
   parser.add_argument('-hb', dest='heartbeat_freq', type=int, help='heartbeat_freq', default=2)
+  parser.add_argument('-g', dest='gfd_id', type=str, help='gfd_id', default="GFD1")
   args = parser.parse_args()
   return args
 
 def main():
   args = getArgs()
   hb = args.heartbeat_freq
-  gfd = GlobalFaultDetector(hb)
+  gfd_id = args.gfd_id
+  gfd = GlobalFaultDetector(gfd_id, hb)
   gfd.start()
 
 if __name__ == "__main__":

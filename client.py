@@ -9,7 +9,7 @@ ADDR = (IP, PORT)
 SIZE = 1024
 FORMAT = "utf-8"
 DISCONNECT_MSG = "q"
-SERVERS = {"S1": 8888}
+SERVERS = {"S1": 7777, "S2": 8888, "S3": 9999}
 
 class Client(object):
     def __init__(self, client_id, addr=ADDR):

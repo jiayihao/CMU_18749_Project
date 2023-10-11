@@ -6,6 +6,7 @@ import threading
 import time
 import json
 import argparse
+import random
 
 
 IP = socket.gethostbyname("")
@@ -85,7 +86,7 @@ class Server(object):
         print("Received " + message + " from " + client_id)
         print("[{}] Received <{}, {}, {}, request>".format(self.get_time(), client_id, self.server_id, request_num))
         print("[{}] my_state_{} = {} before processing <{}, {}, {}, request>".format(self.get_time(), self.server_id, self.response_num, client_id, self.server_id, request_num))
-        #print("Total response number is", self.response_num, "\n")
+
         self.queue.append(addr)
         while self.my_state != WAITING or addr != self.queue[0]:
             continue
@@ -97,8 +98,17 @@ class Server(object):
             print("Goodbye " + client_id + "\n")
             conn.close()
         else:
-            reply_msg = "Msg received: " + message
-            time.sleep(10)
+            # # reply_msg = "Msg received: " + message
+            # reply_msg = json.dumps(msg)
+            reply_msg = {
+                "header": "server",
+                "client_id": msg["client_id"],
+                "server_id": self.server_id,
+                "request_num": msg["request_num"],
+                "message": msg["message"]
+            }
+            reply_msg = json.dumps(reply_msg)
+            time.sleep(random.randint(1,10))
             self.response_num += 1
             self.my_state = WAITING
             self.queue.pop(0)

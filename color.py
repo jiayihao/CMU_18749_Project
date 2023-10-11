@@ -6,12 +6,11 @@ Created on Sat Oct  7 14:30:48 2023
 """
 import sys
 
-COLOR_RED = '\033[91m'
-COLOR_GREEN = '\033[92m'
-COLOR_YELLOW = '\033[93m'
-COLOR_BLUE = '\033[94m'
-COLOR_MAGENTA = '\033[95m'
-COLOR_CYAN = '\033[96m'
+COLOR_RED = '\033[91m' #GFD
+COLOR_ORANGE = '\033[33m' #LFD
+COLOR_BLUE = '\033[94m' #CLIENT
+COLOR_MAGENTA = '\033[95m' #SERVER
+
 COLOR_RESET = '\033[0m'
 
 def print_color(text, color):

@@ -2,6 +2,7 @@ import socket
 import json
 import time
 import argparse
+import threading
 
 IP = socket.gethostbyname(socket.gethostname())
 PORT = 8888
@@ -16,41 +17,64 @@ class Client(object):
         self.client_id = client_id
         self.request_num = 101
         self.addr = addr
+        self.reply_num = set()
+
+    def start(self):
+        for i in range(1,4):
+            thread = threading.Thread(target=self.connect, args = ("S" + str(i)))
+            thread.setDaemon(True)
+            thread.start()
+
+        while(1):
+            time.sleep(5)
+            continue
         
     def connect(self, server_id):
         self.client = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self.client.connect(self.addr)
         print("[CONNECTED] {} connected to {} at {}:{}".format(self.client_id, server_id, IP, SERVERS[server_id]))
+        self.sendMessage(server_id)
         
     def sendMessage(self, server_id):
         connected = True
         while connected:
-            msg = input("Please enter message>> ")
-            data = {
-                    "header": "client",
-                    "client_id": self.client_id,
-                    "server_id": server_id,
-                    "request_num": str(self.request_num),
-                    "message": msg
-                    }
-            if msg == DISCONNECT_MSG:
-                connected = False
-                self.client.send(json.dumps(data).encode(FORMAT))
-                self.client.close()
-            else:
-                to_send = json.dumps(data)
-                print("Sent " + to_send + " to " + server_id)
-                print("[{}] Sent <{}, {}, {}, request>\n".format(self.get_time(), self.client_id, server_id, self.request_num))
-                self.request_num += 1
-                self.client.send(to_send.encode(FORMAT))
-                msg = self.client.recv(SIZE).decode(FORMAT)
-                if not msg:
+            # msg = input("Please enter message>> ")
+            i = 0
+            while True:
+                msg = str(i)
+                data = {
+                        "header": "client",
+                        "client_id": self.client_id,
+                        "server_id": server_id,
+                        "request_num": self.request_num,
+                        "message": msg
+                        }
+                if msg == DISCONNECT_MSG:
                     connected = False
+                    self.client.send(json.dumps(data).encode(FORMAT))
                     self.client.close()
-                    print("Server closed...")
                 else:
-                    print("Received " + msg + " from " + server_id)
-                    print("[{}] Received <{}, {}, {}, reply>\n".format(self.get_time(), self.client_id, server_id, self.request_num))
+                    to_send = json.dumps(data)
+                    print("Sent " + to_send + " to " + server_id)
+                    print("[{}] Sent <{}, {}, {}, request>\n".format(self.get_time(), self.client_id, server_id, self.request_num))
+                    self.client.send(to_send.encode(FORMAT))
+                    msg = self.client.recv(SIZE).decode(FORMAT)
+                    msg = json.loads(msg)
+                    server_id = msg["server_id"]
+                    request_num = msg["request_num"]
+                    if request_num in self.reply_num:
+                        print(f"Discard from {server_id}")
+                    else:
+                        self.reply_num.add(server_id)
+                    if not msg:
+                        connected = False
+                        self.client.close()
+                        print("Server closed...")
+                    else:
+                        print("Received " + msg + " from " + server_id)
+                        print("[{}] Received <{}, {}, {}, reply>\n".format(self.get_time(), self.client_id, server_id, self.request_num))
+                    self.request_num += 1
+                i += 1
     def get_time(self):
         return time.strftime("%Y-%m-%d %H:%M:%S", time.localtime())
 

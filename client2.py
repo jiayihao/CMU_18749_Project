@@ -23,28 +23,21 @@ def get_time():
     return time.strftime("%Y-%m-%d %H:%M:%S", time.localtime())
 
 
-
-
 class Client(object):
     def __init__(self, client_id):
         threading.Thread.__init__(self)
         self.cid = client_id
         self.seq = 101
-        # self.threads=[]
         self.status = set()
         self.default_msg = "Client Hello!"
-        self.alive_servers = set()
     
  
     def connect(self, ip, port, sock) -> bool:
         try:
             sock.connect((ip, port))
-            self.alive_servers.add(port)
             return True
         except Exception:
-            # print("[FAIL!] Connection To Server Fail.")
-            if port not in self.alive_servers:
-                self.alive_servers.remove(port)
+            print("[FAIL!] Connection To Server Fail.")
             return False
 
     def exchange(self, sock, cur_seq, svr) -> (str, dict):
@@ -74,7 +67,6 @@ class Client(object):
         return cur_seq, msg
 
     def check_duplication(self, cur_seq: int) -> bool:
-        
         if cur_seq in self.status:
             return True
         else:
@@ -97,15 +89,12 @@ class Client(object):
 
     def initialize(self, ip, port, seq, svr):
         sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        # self.connect(ip, port, sock)
         if not self.connect(ip, port, sock): return
-        # if port in self.alive_servers:
         cur_seq, msg = self.exchange(sock, seq, svr)
         self.disconnect(sock)
         self.updating(cur_seq, SVR, msg)
 
     def run(self, ip, port, svr):
-        
         while True:
             t1 = threading.Thread(target=self.initialize, name='Thread_1', args = (ip, 7777, self.seq, svr))
             t2 = threading.Thread(target=self.initialize, name='Thread_2', args = (ip, 8888, self.seq, svr))
@@ -113,7 +102,6 @@ class Client(object):
             t1.start()
             t2.start()
             t3.start()
-            # self.initialize(ip, port, self.seq, svr)
             time.sleep(1)
 
 
@@ -131,37 +119,3 @@ if __name__ == '__main__':
     args = getArgs()
     c = Client(args.client_id)
     c.run(args.server_IP, args.server_port, args.server_id)
-
-    # t1 = threading.Thread(target=c.run, name='Thread_2', args = (args.server_IP, args.server_port, args.server_id))
-    # t1.daemon = True
-    # t1.start()
-    # t.join()
-
-    # print("aaa")
-
-    # t2 = threading.Thread(target=c.run, name='Thread_1', args = (args.server_IP, args.server_port, args.server_id))
-    # t2.daemon = True
-    # t2.start()
-    # # t2.join()
-
-    # while(1):
-    #     time.sleep(13)
-    #     continue
-
-    
-
-    print("bbb")
-
-    # gfd_thread = threading.Thread(target=c.run, args = (args.server_IP, args.server_port))
-    # gfd_thread.daemon = True
-    # gfd_thread.start()
-
-    # c1 = Client("C1")
-    # c2 = Client("C2")
-    # c3 = Client("C3")
-    # c1.start()
-    # c2.start()
-    # c3.start()
-    # c1.join()
-    # c2.join()
-    # c3.join()

@@ -7,6 +7,8 @@ import time
 import json
 import argparse
 
+from color import *
+
 
 IP = socket.gethostbyname("")
 # PORT = 7777
@@ -30,7 +32,7 @@ class Server(object):
         self.queue = []
         
         private_ip = socket.gethostbyname(socket.gethostname())
-        print(f"[STARTING] Starting server on {private_ip}:{self.port}")
+        print_color(f"[STARTING] Starting server on {private_ip}:{self.port}", COLOR_MAGENTA)
         self.server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self.server.bind((IP, self.port))
         self.server.listen()
@@ -43,11 +45,11 @@ class Server(object):
             thread.setDaemon(True)
             thread.start()
             # print("\n[ACTIVE CONNECTIONS] " + str(self.active_connect) + "\n")
-            print("\n[ACTIVE CONNECTIONS] " + str(threading.active_count() - 1) + "\n")
+            print_color("\n[ACTIVE CONNECTIONS] " + str(threading.active_count() - 1) + "\n", COLOR_MAGENTA)
                 
     
     def handle_request(self, conn, addr):
-        print("\n[NEW CONNECTION] {} connected\n".format(addr))
+        print_color("\n[NEW CONNECTION] {} connected\n".format(addr), COLOR_BLUE)
         while True:
             try:
                 msg = conn.recv(SIZE).decode(FORMAT)
@@ -64,7 +66,7 @@ class Server(object):
                     conn.close()
                     break
             except Exception:
-                print(str(addr) + " is disconnected...\n")
+                print_color(str(addr) + " is disconnected...\n", COLOR_BLUE)
                 #移除对应的client
                 # if header == CLIENT_HEADER:
                 #     self.queue.remove(addr)
@@ -73,18 +75,18 @@ class Server(object):
                 break
     
     def handle_lfd(self, conn, msg, lfd_id, heartbeat_count):
-        print(f"[{heartbeat_count}] Received {msg} from {lfd_id}")
+        print_color(f"[{heartbeat_count}] Received {msg} from {lfd_id}", COLOR_ORANGE)
         conn.send(HEARTBEAT_RELPY.encode(FORMAT))
-        print(f"[{heartbeat_count}] Reply {HEARTBEAT_RELPY} to {lfd_id} \n")
+        print_color(f"[{heartbeat_count}] Reply {HEARTBEAT_RELPY} to {lfd_id} \n", COLOR_MAGENTA)
             
     def handle_client(self, conn, msg, addr):
        
         client_id = msg["client_id"]
         request_num = msg["request_num"]
         message = msg["message"]
-        print("Received " + message + " from " + client_id)
-        print("[{}] Received <{}, {}, {}, request>".format(self.get_time(), client_id, self.server_id, request_num))
-        print("[{}] my_state_{} = {} before processing <{}, {}, {}, request>".format(self.get_time(), self.server_id, self.response_num, client_id, self.server_id, request_num))
+        print_color("Received " + message + " from " + client_id, COLOR_BLUE)
+        print_color("[{}] Received <{}, {}, {}, request>".format(self.get_time(), client_id, self.server_id, request_num), COLOR_BLUE)
+        print_color("[{}] my_state_{} = {} before processing <{}, {}, {}, request>".format(self.get_time(), self.server_id, self.response_num, client_id, self.server_id, request_num), COLOR_MAGENTA)
         #print("Total response number is", self.response_num, "\n")
         self.queue.append(addr)
         while self.my_state != WAITING or addr != self.queue[0]:
@@ -94,7 +96,7 @@ class Server(object):
         if message == DISCONNECT_MSG:
             self.my_state = WAITING
             self.queue.pop(0)
-            print("Goodbye " + client_id + "\n")
+            print_color("Goodbye " + client_id + "\n", COLOR_MAGENTA)
             conn.close()
         else:
             reply_msg = "Msg received: " + message
@@ -103,8 +105,8 @@ class Server(object):
             self.my_state = WAITING
             self.queue.pop(0)
             conn.send(reply_msg.encode(FORMAT))
-            print("[{}] Sending <{}, {}, {}, reply>".format(self.get_time(), client_id, self.server_id, request_num))
-            print("[{}] my_state_{} = {} after processing <{}, {}, {}, request>".format(self.get_time(), self.server_id, self.response_num, client_id, self.server_id, request_num))
+            print_color("[{}] Sending <{}, {}, {}, reply>".format(self.get_time(), client_id, self.server_id, request_num), COLOR_MAGENTA)
+            print_color("[{}] my_state_{} = {} after processing <{}, {}, {}, request>".format(self.get_time(), self.server_id, self.response_num, client_id, self.server_id, request_num), COLOR_MAGENTA)
     
     def get_time(self):
         return time.strftime("%Y-%m-%d %H:%M:%S", time.localtime())

@@ -1,4 +1,5 @@
 import socket, argparse, time, json, threading, socket
+from color import * 
 
 PORT = 1234
 IP = socket.gethostbyname(socket.gethostname())
@@ -31,7 +32,7 @@ class GlobalFaultDetector():
     self.heartbeat_msg = HEARTBEAT_MSG
     self.heartbeat_msg = self.heartbeat_msg.encode(FORMAT)
 
-    print(f"[STARTING] Starting {self.gfd_id} on {self.ip}:{self.port}")
+    print_color(f"[STARTING] Starting {self.gfd_id} on {self.ip}:{self.port}", COLOR_RED)
     print()
     
     self.print_memberships()
@@ -77,22 +78,22 @@ class GlobalFaultDetector():
     while True:
       try:
           conn.send(self.heartbeat_msg)
-          print(f" {self.gfd_id} sending heartbeat to {lfd_id}")
+          print_color(f" {self.gfd_id} sending heartbeat to {lfd_id}", COLOR_RED)
       except:
           continue
       
       try:
           msg = conn.recv(SIZE).decode(FORMAT)
           if msg != HEARTBEAT_RELPY:
-              print(lfd_id + DEAD_MSG + "\n")
+              print_color(lfd_id + DEAD_MSG + "\n", COLOR_ORANGE)
               self.lfds_addr.pop(lfd_id)
               self.memberships.pop(server_id)
               self.membercount -= 1
               self.print_memberships()
           else:
-              print(lfd_id + ALIVE_MSG + "\n")
+              print_color(lfd_id + ALIVE_MSG + "\n", COLOR_ORANGE)
       except Exception:
-          print("\n[EXCEPTION] " + lfd_id + DEAD_MSG)
+          print("\n[EXCEPTION] " + lfd_id + DEAD_MSG , COLOR_ORANGE)
           self.lfds_addr.pop(lfd_id)
           self.memberships.pop(server_id)
           self.membercount -= 1
@@ -114,8 +115,8 @@ class GlobalFaultDetector():
       self.membercount -= 1
     else:
       example_msg = "LFD1: add replica S1" 
-      print(f"INVALID msg: {message} ")
-      print(f"EXPECTED: {example_msg} such format")
+      print_color(f"INVALID msg: {message} ", COLOR_MAGENTA)
+      print_color(f"EXPECTED: {example_msg} such format", COLOR_MAGENTA)
       print()
     self.print_memberships()
 
@@ -123,7 +124,7 @@ class GlobalFaultDetector():
     p = f"GFD: {self.membercount} members: "
     for mem in self.memberships:
       p += f"{mem}, "
-    print(p.rstrip(', '))
+    print_color(p.rstrip(', '), COLOR_RED)
 
 def getArgs():
   parser = argparse.ArgumentParser()

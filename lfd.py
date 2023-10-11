@@ -3,6 +3,7 @@ import json
 import time
 import argparse
 import threading
+from color import *
 
 IP = socket.gethostbyname(socket.gethostname())
 GFD_PORT = 1234
@@ -71,9 +72,9 @@ class LocalFaultDetector(object):
         while True:
             try:
                 msg = self.to_gfd.recv(SIZE).decode(FORMAT)
-                print("Received " + msg + "from GFD1")
+                print_color("Received " + msg + "from GFD1", COLOR_RED)
                 self.to_gfd.send(HEARTBEAT_RELPY.encode(FORMAT))
-                print("Reply " + HEARTBEAT_RELPY + " to GFD1" + "\n")
+                print_color("Reply " + HEARTBEAT_RELPY + " to GFD1" + "\n", COLOR_ORANGE)
             except Exception:
                 break
 
@@ -88,14 +89,14 @@ class LocalFaultDetector(object):
                     }
             try:
                 self.to_server.send(json.dumps(data).encode(FORMAT))
-                print(f"[{self.heartbeat_count}] {self.lfd_id} sending heartbeat to {self.connect_server_id}")
+                print_color(f"[{self.heartbeat_count}] {self.lfd_id} sending heartbeat to {self.connect_server_id}", COLOR_ORANGE)
             except:
                 continue
             
             try:
                 msg = self.to_server.recv(SIZE).decode(FORMAT)
                 if msg != HEARTBEAT_RELPY:
-                    print(f"{self.connect_server_id} {DEAD_MSG}")
+                    print_color(f"{self.connect_server_id} {DEAD_MSG}", COLOR_MAGENTA)
                     self.server_alive = False
                     if self.gfd_alive and not self.notify_dead:
                         message = self.lfd_id + ": delete replica " + self.connect_server_id
@@ -104,7 +105,7 @@ class LocalFaultDetector(object):
                         self.notify_alive = False
                 elif msg == HEARTBEAT_RELPY:
                     self.heartbeat_count += 1
-                    print(f"{self.connect_server_id} {ALIVE_MSG}")
+                    print_color(f"{self.connect_server_id} {ALIVE_MSG}", COLOR_MAGENTA)
                     self.server_alive = True
                     if self.gfd_alive and not self.notify_alive:
                         message = self.lfd_id + ": add replica " + self.connect_server_id
@@ -112,7 +113,7 @@ class LocalFaultDetector(object):
                         self.notify_alive = True
                         self.notify_dead = False
             except Exception:
-                print("\n[EXCEPTION] " + self.connect_server_id + DEAD_MSG)
+                print_color("\n[EXCEPTION] " + self.connect_server_id + DEAD_MSG, COLOR_MAGENTA)
                 self.server_alive = False
                 if self.gfd_alive and not self.notify_dead:
                     message = self.lfd_id + ": delete replica " + self.connect_server_id
@@ -125,28 +126,28 @@ class LocalFaultDetector(object):
 
     def lanuch_server_socket(self):
         self.server_addr = (IP, SERVERS[self.connect_server_id])
-        print(f"[STARTING] Starting LFD on {ADDR}...\n")
+        print_color(f"[STARTING] Starting LFD on {ADDR}...\n", COLOR_ORANGE)
         while not self.server_alive:
             try:
                 self.to_server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
                 self.to_server.connect(self.server_addr)
-                print(f"[CONNECTED] {self.lfd_id} connected to {self.connect_server_id} at {IP}:{SERVERS[self.connect_server_id]}")
+                print_color(f"[CONNECTED] {self.lfd_id} connected to {self.connect_server_id} at {IP}:{SERVERS[self.connect_server_id]}", COLOR_ORANGE)
                 self.server_alive = True
                 self.check_server_alive()
             except Exception:
-                print(f"[FAILED!] Waiting for {self.connect_server_id}")
+                print_color(f"[FAILED!] Waiting for {self.connect_server_id}", COLOR_ORANGE)
                 self.server_alive = False
                 time.sleep(5)
                 continue
 
     def lanuch_gfd_socket(self):
         self.gfd_addr = (IP, GFD_PORT)
-        print(f"[STARTING] {self.lfd_id} connecting GFD1\n")
+        print_color(f"[STARTING] {self.lfd_id} connecting GFD1\n", COLOR_ORANGE)
         while not self.gfd_alive:
             try:
                 self.to_gfd = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
                 self.to_gfd.connect(self.gfd_addr)
-                print(f"[CONNECTED] {self.lfd_id} connected to GFD1 at {IP}:1234")
+                print_color(f"[CONNECTED] {self.lfd_id} connected to GFD1 at {IP}:1234", COLOR_ORANGE)
                 
                 data = {
                     "header": "lfd",
@@ -160,7 +161,7 @@ class LocalFaultDetector(object):
                 self.gfd_alive = True
                 self.reply_gfd_heartbeat()
             except Exception:
-                print(f"[FAILED!] Waiting for GFD1")
+                print_color(f"[FAILED!] Waiting for GFD1", COLOR_ORANGE)
                 time.sleep(5)
                 continue
 

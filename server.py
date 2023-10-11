@@ -46,11 +46,11 @@ class Server(object):
             thread.setDaemon(True)
             thread.start()
             # print("\n[ACTIVE CONNECTIONS] " + str(self.active_connect) + "\n")
-            print_color("\n[ACTIVE CONNECTIONS] " + str(threading.active_count() - 1) + "\n", COLOR_MAGENTA)
+            # print_color("\n[ACTIVE CONNECTIONS] " + str(threading.active_count() - 1) + "\n", COLOR_MAGENTA)
                 
     
     def handle_request(self, conn, addr):
-        print_color("\n[NEW CONNECTION] {} connected\n".format(addr), COLOR_BLUE)
+        # print_color("\n[NEW CONNECTION] {} connected\n".format(addr), COLOR_BLUE)
         while True:
             try:
                 msg = conn.recv(SIZE).decode(FORMAT)
@@ -67,7 +67,7 @@ class Server(object):
                     conn.close()
                     break
             except Exception:
-                print_color(str(addr) + " is disconnected...\n", COLOR_BLUE)
+                # print_color(str(addr) + " is disconnected...\n", COLOR_BLUE)
                 #移除对应的client
                 # if header == CLIENT_HEADER:
                 #     self.queue.remove(addr)

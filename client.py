@@ -37,15 +37,15 @@ class Client(object):
             sock.connect((ip, port))
             return True
         except Exception:
-            # print("[FAIL!] Connection To Server Fail.")
+            print("[FAIL!] Connection To Server Fail.")
             return False
 
-    def exchange(self, sock, cur_seq, svr) -> (str, dict):
-        print(f"[{get_time()}] Sent <{self.cid}, {svr}, {cur_seq}, request>")
+    def exchange(self, sock, seq, svr_id) -> dict:
+        print(f"[{get_time()}] Sent <{self.cid}, {svr_id}, {seq}, request>")
         data = {
                     "header": "client",
                     "client_id": self.cid,
-                    "server_id": svr,
+                    "server_id": svr_id,
                     "request_num": self.seq,
                     "message": self.default_msg
                 }
@@ -54,26 +54,30 @@ class Client(object):
         except Exception:
             print("[FAIL!] Send Fail.")
             return
+        
+        print("xxxxxxxx")
+
         msg = dict()
         try:
             message = sock.recv(1024).decode(FORMAT)
             message = json.loads(message)
             msg["server_id"] = message["server_id"]
             msg["request_num"] = message["request_num"]
+            msg["message"] = message["message"]
         except Exception:
             print("[FAIL!] Receive Fail.")
             return
-        
-        return cur_seq, msg
+        print("aaaaaaa")
+        return msg
 
-    def check_duplication(self, cur_seq: int) -> bool:
-        if cur_seq in self.status:
+    def check_duplication(self, seq: int) -> bool:
+        if seq in self.status:
             return True
         else:
-            self.status.add(cur_seq)
+            self.status.add(seq)
             return False
 
-    def updating(self, cur_seq: str, svr: str, msg: dict) -> None:
+    def updating(self, msg: dict) -> None:
         sid = msg["server_id"]
         seq = msg["request_num"]
 
@@ -87,21 +91,23 @@ class Client(object):
     def disconnect(self, sock):
         sock.shutdown(socket.SHUT_RDWR)
 
-    def initialize(self, ip, port, seq, svr):
+    def initialize(self, ip, port, seq, server_id):
         sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         if not self.connect(ip, port, sock): return
-        cur_seq, msg = self.exchange(sock, seq, svr)
+        msg = self.exchange(sock, seq, server_id)
         self.disconnect(sock)
-        self.updating(cur_seq, msg["server_id"], msg)
+        self.updating(msg)
 
     def run(self, ip, port, svr):
         while True:
-            t1 = threading.Thread(target=self.initialize, name='Thread_1', args = (ip, 7777, self.seq, "S1"))
-            t2 = threading.Thread(target=self.initialize, name='Thread_2', args = (ip, 8888, self.seq, "S2"))
-            t3 = threading.Thread(target=self.initialize, name='Thread_3', args = (ip, 9999, self.seq, "S3"))
-            t1.start()
-            t2.start()
-            t3.start()
+            # t1 = threading.Thread(target=self.initialize, name='Thread_1', args = (ip, 7777, self.seq, "S1"))
+            # t2 = threading.Thread(target=self.initialize, name='Thread_2', args = (ip, 8888, self.seq, "S2"))
+            # t3 = threading.Thread(target=self.initialize, name='Thread_3', args = (ip, 9999, self.seq, "S3"))
+            # t1.start()
+            # t2.start()
+            # t3.start()
+            # self.initialize(ip, 9999, self.seq, "S3")
+            self.initialize(ip, 7777, self.seq, "S1")
             time.sleep(1)
 
 

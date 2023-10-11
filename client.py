@@ -45,7 +45,7 @@ class Client(object):
         data = {
                     "header": "client",
                     "client_id": self.cid,
-                    "server_id": "server_id",
+                    "server_id": svr,
                     "request_num": self.seq,
                     "message": self.default_msg
                 }
@@ -92,13 +92,13 @@ class Client(object):
         if not self.connect(ip, port, sock): return
         cur_seq, msg = self.exchange(sock, seq, svr)
         self.disconnect(sock)
-        self.updating(cur_seq, SVR, msg)
+        self.updating(cur_seq, msg["server_id"], msg)
 
     def run(self, ip, port, svr):
         while True:
-            t1 = threading.Thread(target=self.initialize, name='Thread_1', args = (ip, 7777, self.seq, svr))
-            t2 = threading.Thread(target=self.initialize, name='Thread_2', args = (ip, 8888, self.seq, svr))
-            t3 = threading.Thread(target=self.initialize, name='Thread_3', args = (ip, 9999, self.seq, svr))
+            t1 = threading.Thread(target=self.initialize, name='Thread_1', args = (ip, 7777, self.seq, "S1"))
+            t2 = threading.Thread(target=self.initialize, name='Thread_2', args = (ip, 8888, self.seq, "S2"))
+            t3 = threading.Thread(target=self.initialize, name='Thread_3', args = (ip, 9999, self.seq, "S3"))
             t1.start()
             t2.start()
             t3.start()

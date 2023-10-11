@@ -15,7 +15,7 @@ ADDR = (IP, PORT)
 SIZE = 1024
 FORMAT = "utf-8"
 DISCONNECT_MSG = "q"
-SERVERS = {"S1": 8888}
+SERVERS = {"S1": 7777, "S2": 8888, "S3": 9999}
 SVR = "S1"
 
 
@@ -33,16 +33,21 @@ class Client(object):
         # self.threads=[]
         self.status = set()
         self.default_msg = "Client Hello!"
+        self.alive_servers = set()
+    
  
     def connect(self, ip, port, sock) -> bool:
         try:
             sock.connect((ip, port))
+            self.alive_servers.add(port)
             return True
         except Exception:
-            print("[FAIL!] Connection To Server Fail.")
+            # print("[FAIL!] Connection To Server Fail.")
+            if port not in self.alive_servers:
+                self.alive_servers.remove(port)
             return False
 
-    def exchange(self, sock, cur_seq, svr) -> (str, str):
+    def exchange(self, sock, cur_seq, svr) -> (str, dict):
         print(f"[{get_time()}] Sent <{self.cid}, {svr}, {cur_seq}, request>")
         data = {
                     "header": "client",
@@ -56,13 +61,17 @@ class Client(object):
         except Exception:
             print("[FAIL!] Send Fail.")
             return
+        msg = dict()
         try:
             message = sock.recv(1024).decode(FORMAT)
+            message = json.loads(message)
+            msg["server_id"] = message["server_id"]
+            msg["request_num"] = message["request_num"]
         except Exception:
             print("[FAIL!] Receive Fail.")
             return
         
-        return cur_seq, data
+        return cur_seq, msg
 
     def check_duplication(self, cur_seq: int) -> bool:
         
@@ -72,13 +81,15 @@ class Client(object):
             self.status.add(cur_seq)
             return False
 
-    def updating(self, data: str, cur_seq: str, svr: str) -> None:
+    def updating(self, cur_seq: str, svr: str, msg: dict) -> None:
+        sid = msg["server_id"]
+        seq = msg["request_num"]
 
-        if not self.check_duplication(cur_seq):
+        if not self.check_duplication(seq):
             self.seq += 1
-            print(f"[{get_time()}] Received <{self.cid}, {svr}, {cur_seq}, reply>")
+            print(f"[{get_time()}] Received <{self.cid}, {sid}, {seq}, reply>")
         else:
-            print(f"[{get_time()}] request_num {cur_seq}: Discarded duplicate reply from SERVER.")
+            print(f"[{get_time()}] request_num {seq}: Discarded duplicate reply from {sid}.")
 
 
     def disconnect(self, sock):
@@ -86,16 +97,19 @@ class Client(object):
 
     def initialize(self, ip, port, seq, svr):
         sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        self.connect(ip, port, sock)
-        cur_seq, data = self.exchange(sock, seq, svr)
+        # self.connect(ip, port, sock)
+        if not self.connect(ip, port, sock): return
+        # if port in self.alive_servers:
+        cur_seq, msg = self.exchange(sock, seq, svr)
         self.disconnect(sock)
-        self.updating(data, cur_seq, SVR)
+        self.updating(cur_seq, SVR, msg)
 
     def run(self, ip, port, svr):
+        
         while True:
-            t1 = threading.Thread(target=self.initialize, name='Thread_1', args = (ip, port, self.seq, svr))
-            t2 = threading.Thread(target=self.initialize, name='Thread_2', args = (ip, port, self.seq, svr))
-            t3 = threading.Thread(target=self.initialize, name='Thread_2', args = (ip, port, self.seq, svr))
+            t1 = threading.Thread(target=self.initialize, name='Thread_1', args = (ip, 7777, self.seq, svr))
+            t2 = threading.Thread(target=self.initialize, name='Thread_2', args = (ip, 8888, self.seq, svr))
+            t3 = threading.Thread(target=self.initialize, name='Thread_3', args = (ip, 9999, self.seq, svr))
             t1.start()
             t2.start()
             t3.start()

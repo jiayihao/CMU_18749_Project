@@ -110,7 +110,7 @@ class Server(object):
                 "message": msg["message"]
             }
             reply_msg = json.dumps(reply_msg)
-            time.sleep(random.randint(1,10))
+            time.sleep(0)
             self.response_num += 1
             self.my_state = WAITING
             self.queue.pop(0)

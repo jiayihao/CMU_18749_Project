@@ -98,7 +98,7 @@ class Server(object):
             conn.close()
         else:
             reply_msg = "Msg received: " + message
-            time.sleep(10)
+            time.sleep(0)
             self.response_num += 1
             self.my_state = WAITING
             self.queue.pop(0)

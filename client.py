@@ -55,18 +55,14 @@ class Client(object):
             print("[FAIL!] Send Fail.")
             return
         
-        print("xxxxxxxx")
 
         msg = dict()
         try:
-            print("00000")
             message = sock.recv(1024).decode(FORMAT)
             message = json.loads(message)
-            print("aaaaaaa")
             msg["server_id"] = message["server_id"]
             msg["request_num"] = message["request_num"]
             msg["message"] = message["message"]
-            print("bbbbbbb")
         except Exception:
             print("[FAIL!] Receive Fail.")
             return
@@ -102,14 +98,14 @@ class Client(object):
 
     def run(self, ip, port, svr):
         while True:
-            # t1 = threading.Thread(target=self.initialize, name='Thread_1', args = (ip, 7777, self.seq, "S1"))
-            # t2 = threading.Thread(target=self.initialize, name='Thread_2', args = (ip, 8888, self.seq, "S2"))
-            # t3 = threading.Thread(target=self.initialize, name='Thread_3', args = (ip, 9999, self.seq, "S3"))
-            # t1.start()
-            # t2.start()
-            # t3.start()
+            t1 = threading.Thread(target=self.initialize, name='Thread_1', args = (ip, 7777, self.seq, "S1"))
+            t2 = threading.Thread(target=self.initialize, name='Thread_2', args = (ip, 8888, self.seq, "S2"))
+            t3 = threading.Thread(target=self.initialize, name='Thread_3', args = (ip, 9999, self.seq, "S3"))
+            t1.start()
+            t2.start()
+            t3.start()
             # self.initialize(ip, 9999, self.seq, "S3")
-            self.initialize(ip, 7777, self.seq, "S1")
+            # self.initialize(ip, 7777, self.seq, "S1")
             time.sleep(1)
 
 

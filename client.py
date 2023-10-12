@@ -59,15 +59,17 @@ class Client(object):
 
         msg = dict()
         try:
+            print("00000")
             message = sock.recv(1024).decode(FORMAT)
             message = json.loads(message)
+            print("aaaaaaa")
             msg["server_id"] = message["server_id"]
             msg["request_num"] = message["request_num"]
             msg["message"] = message["message"]
+            print("bbbbbbb")
         except Exception:
             print("[FAIL!] Receive Fail.")
             return
-        print("aaaaaaa")
         return msg
 
     def check_duplication(self, seq: int) -> bool:

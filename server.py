@@ -12,6 +12,7 @@ from color import *
 
 
 IP = socket.gethostbyname("")
+#IP="127.0.0.1"
 # PORT = 7777
 # ADDR = (IP, PORT)
 SIZE = 1024
@@ -110,7 +111,7 @@ class Server(object):
                 "message": msg["message"]
             }
             reply_msg = json.dumps(reply_msg)
-            time.sleep()
+            # time.sleep(random.randint(1,3))
             self.response_num += 1
             self.my_state = WAITING
             self.queue.pop(0)

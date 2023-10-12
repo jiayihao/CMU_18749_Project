@@ -76,6 +76,7 @@ class Client(object):
             return False
 
     def updating(self, msg: dict) -> None:
+        lock.acquire()
         sid = msg["server_id"]
         seq = msg["request_num"]
 
@@ -84,7 +85,7 @@ class Client(object):
             print(f"[{get_time()}] Received <{self.cid}, {sid}, {seq}, reply>")
         else:
             print(f"[{get_time()}] request_num {seq}: Discarded duplicate reply from {sid}.")
-
+        lock.release()
 
     def disconnect(self, sock):
         sock.shutdown(socket.SHUT_RDWR)

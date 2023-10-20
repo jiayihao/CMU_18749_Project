@@ -124,7 +124,7 @@ class GlobalFaultDetector():
     p = f"GFD: {self.membercount} members: "
     for mem in self.memberships:
       p += f"{mem}, "
-    print_color(p.rstrip(', '), COLOR_RED)
+    print(p.rstrip(', '))
 
 def getArgs():
   parser = argparse.ArgumentParser()

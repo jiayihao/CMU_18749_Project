@@ -10,7 +10,6 @@ import argparse, typing
 import random
 
 from dataclasses import dataclass
-
 from color import *
 
 
@@ -70,7 +69,7 @@ class Server(object):
             conn, addr = self.server.accept()
             self.active_connect += 1
             thread = threading.Thread(target=self.handle_request, args = (conn, addr))
-            thread.setDaemon(True)
+            thread.daemon = True
             thread.start()
             # print("\n[ACTIVE CONNECTIONS] " + str(self.active_connect) + "\n")
             # print_color("\n[ACTIVE CONNECTIONS] " + str(threading.active_count() - 1) + "\n", COLOR_MAGENTA)

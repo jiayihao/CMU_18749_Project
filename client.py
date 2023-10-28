@@ -104,9 +104,9 @@ class Client(object):
     def run(self, ip, port, svr):
         while True:
             print("\n")
-            t1 = threading.Thread(target=self.initialize, name='Thread_1', args = ("10.112.202.122", 7777, self.seq, "S1"))
-            t2 = threading.Thread(target=self.initialize, name='Thread_2', args = ("172.26.19.50", 8888, self.seq, "S2"))
-            t3 = threading.Thread(target=self.initialize, name='Thread_3', args = ("172.26.28.213", 9999, self.seq, "S3"))
+            t1 = threading.Thread(target=self.initialize, name='Thread_1', args = ("127.0.0.1", 7777, self.seq, "S1"))
+            t2 = threading.Thread(target=self.initialize, name='Thread_2', args = ("127.0.0.1", 8888, self.seq, "S2"))
+            t3 = threading.Thread(target=self.initialize, name='Thread_3', args = ("127.0.0.1", 9999, self.seq, "S3"))
             t1.start()
             t2.start()
             t3.start()

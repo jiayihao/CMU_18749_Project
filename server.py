@@ -15,7 +15,7 @@ from color import *
 
 
 IP = socket.gethostbyname("")
-#IP="127.0.0.1"
+# IP="127.0.0.1"
 # PORT = 7777
 # ADDR = (IP, PORT)
 SIZE = 1024
@@ -33,17 +33,10 @@ class ServerType:
     id: str
     ip: str
     port: int
+
 PASSIVE_SERVERS: List[ServerType] = [
-    {
-        id: 'S2',
-        ip: '127.0.0.1',
-        port: '8888',
-    },
-    {
-        id: 'S3',
-        ip: '127.0.0.1',
-        port: '9999',
-    }
+    ServerType('S2', '127.0.0.1', 8888),
+    ServerType('S3', '127.0.0.1', 9999)
 ]
 
 class Server(object):
@@ -72,10 +65,6 @@ class Server(object):
             # set up passive servers initilzation
             t = threading.Thread(target=self.setup_passive_servers)
             t.start()
-        else:
-            t = threading.Thread(target=self.handle_checkpoint)
-            t.start()
-            time.sleep(0.5)
         
         while True:
             conn, addr = self.server.accept()
@@ -164,32 +153,34 @@ class Server(object):
             for passive_server in self.passive_servers:
                 threads.append(threading.Thread(target = self.sent_checkpoint, \
                                                 name = f'Thread for server {passive_server.id}', \
-                                                args = (passive_server, self.checkpoint_num, \
-                                                self.response_num)))
+                                                args = (passive_server, self.response_num, \
+                                                        self.checkpoint_num)))
 
             for t in threads:
                 t.start()
             self.checkpoint_num += 1
-            time.sleep(5)
+            time.sleep(3)
     
     def sent_checkpoint(self, server: ServerType, response_num: int, checkpoint_num: int):
         sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         if not self.connect(server, sock):
             return
         self.exchange(sock, server, response_num, checkpoint_num)
-        sock.shutdown()
+        sock.shutdown(socket.SHUT_RDWR)
         
     def exchange(self, sock, server: ServerType, response_num: int, checkpoint_num: int) -> dict:
         # print(f"[{get_time()}] Sent <{self.cid}, {svr_id}, {seq}, request>")
         data = {
             "header": CHECKPOINT_HEADER,
             "checkpoint_num": checkpoint_num,
-            "server_id": server.id,
-            "state": response_num
+            "to": server.id,
+            "state": response_num,
+            "from": self.server_id
         }
+
         try:
             sock.send(json.dumps(data).encode(FORMAT))
-            print(f"[{self.get_time()}] Checkpoint Sent: {self.checkpoint_num}, Status Sent: {self.response_num}")
+            print(f"[{self.get_time()}] To Server: {server.id}, Checkpoint Sent: {self.checkpoint_num}, Status Sent: {self.response_num}")
         except Exception:
             print("[FAIL!] Send Fail.")
 
@@ -203,7 +194,8 @@ class Server(object):
     def handle_checkpoint(self, msg):
         self.response_num = msg["state"]
         self.checkpoint_num = msg["checkpoint_num"]
-        print(f"[{self.get_time()}] Checkpoint Received: {self.checkpoint_num}, Status Received: {self.response_num}")
+        server_id = msg["from"]
+        print(f"[{self.get_time()}] From Server: {server_id}, Checkpoint Received: {self.checkpoint_num}, Status Received: {self.response_num}")
 
 
     def get_time(self):

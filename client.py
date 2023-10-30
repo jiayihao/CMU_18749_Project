@@ -93,13 +93,14 @@ class Client(object):
             sock.shutdown(socket.SHUT_RDWR)
         except Exception:
             pass
-
     def initialize(self, ip, port, seq, server_id):
         sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         if not self.connect(ip, port, sock,server_id): return
-        msg = self.exchange(sock, seq, server_id)
+        if server_id=="S1":
+            msg = self.exchange(sock, seq, server_id)
         self.disconnect(sock)
-        self.updating(msg)
+        if server_id=="S1":
+            self.updating(msg)
 
     def run(self, ip, port, svr):
         while True:

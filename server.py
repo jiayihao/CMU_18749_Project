@@ -34,12 +34,12 @@ class ServerType:
     port: int
 
 PASSIVE_SERVERS: List[ServerType] = [
-    ServerType('S2', '127.0.0.1', 8888),
-    ServerType('S3', '127.0.0.1', 9999)
+    ServerType('S2', '172.26.86.73', 8888),
+    ServerType('S3', '172.26.107.74', 9999)
 ]
 
 class Server(object):
-    def __init__(self, server_id, port, primary: False, passive_servers: List[ServerType]= PASSIVE_SERVERS):
+    def __init__(self, server_id, port, primary: False, checkpoint_freq: int, passive_servers: List[ServerType]= PASSIVE_SERVERS):
         self.server_id = server_id
         self.port = port
         self.my_state = WAITING
@@ -48,6 +48,7 @@ class Server(object):
         self.checkpoint_num = 0
         #self.queue[i] = addr
         self.queue = []
+        self.checkpoint_freq = checkpoint_freq
         
         private_ip = socket.gethostbyname(socket.gethostname())
         print_color(f"[STARTING] Starting server on {private_ip}:{self.port}", COLOR_MAGENTA)
@@ -158,7 +159,7 @@ class Server(object):
             for t in threads:
                 t.start()
             self.checkpoint_num += 1
-            time.sleep(3)
+            time.sleep(self.checkpoint_freq)
     
     def sent_checkpoint(self, server: ServerType, response_num: int, checkpoint_num: int):
         sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -204,6 +205,7 @@ def getArgs():
     parser = argparse.ArgumentParser()
     parser.add_argument('-s', dest='server_id', type=str, help='server_id to send')
     parser.add_argument('-p', dest='port', type=int, help='port')
+    parser.add_argument('-cf', dest='checkpoint_freq', type=int, help='checkpoint freqency')
     # true = primary, 0 = backup
     parser.add_argument('--primary', dest='primary', action='store_true', required=False, default=False)
     args = parser.parse_args()
@@ -214,5 +216,6 @@ if __name__ == '__main__':
     server_id = args.server_id
     port = args.port
     primary = args.primary
-    s = Server(server_id, port, primary, PASSIVE_SERVERS)
+    checkpoint_freq = args.checkpoint_freq
+    s = Server(server_id, port, primary, checkpoint_freq, PASSIVE_SERVERS)
     s.start()

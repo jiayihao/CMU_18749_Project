@@ -75,7 +75,6 @@ class Server(object):
             # print("\n[ACTIVE CONNECTIONS] " + str(self.active_connect) + "\n")
             # print_color("\n[ACTIVE CONNECTIONS] " + str(threading.active_count() - 1) + "\n", COLOR_MAGENTA)
                 
-    
     def handle_request(self, conn, addr):
         # print_color("\n[NEW CONNECTION] {} connected\n".format(addr), COLOR_BLUE)
         while True:
@@ -155,7 +154,6 @@ class Server(object):
                                                 name = f'Thread for server {passive_server.id}', \
                                                 args = (passive_server, self.response_num, \
                                                         self.checkpoint_num)))
-
             for t in threads:
                 t.start()
             self.checkpoint_num += 1

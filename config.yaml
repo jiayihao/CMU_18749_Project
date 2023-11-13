@@ -1,0 +1,28 @@
+servers:
+  - id: S1
+    ip: localhost
+    port: 7777
+  - id: S2
+    ip: localhost 
+    port: 8888
+  - id: S3
+    ip: localhost
+    port: 9999
+lfd:
+  - id: lfd1
+    ip: localhost
+    port: 9999
+  - id: lfd2
+    ip: localhost
+    port: 9999
+  - id: lfd3
+    ip: localhost
+    port: 9999
+gfd:
+  - id: gfd
+    ip: localhost
+    port: 9999
+rm:
+  - id: rm
+    ip: localhost
+    port: 9999

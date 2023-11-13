@@ -1,13 +1,10 @@
-import datetime 
 from typing import List
 import socket
-import signal
-import sys
 import threading
 import time
 import json
-import argparse, typing
-import random
+import argparse 
+import yaml
 
 from dataclasses import dataclass
 from color import print_color, COLOR_BLUE, COLOR_MAGENTA, COLOR_ORANGE, COLOR_RED, COLOR_RESET
@@ -32,12 +29,6 @@ class ServerType:
     id: str
     ip: str
     port: int
-
-# SERVERS: List[ServerType] = [
-#     ServerType('S1', 'localhost', 7777),
-#     ServerType('S2', '172.26.86.73', 8888),
-#     ServerType('S3', '172.26.107.74', 9999)
-# ]
 
 SERVERS: List[ServerType] = [
     ServerType('S1', 'localhost', 7777),
@@ -220,12 +211,20 @@ def getArgs():
     args = parser.parse_args()
     return args   
 
+def load_config():
+    with open('config.yaml') as f:
+        config = yaml.safe_load(f)
+
+    servers = [ServerType(**server) for server in config['servers']]
+    return servers
+
 if __name__ == '__main__':
     args = getArgs()
     server_id = args.server_id
     port = args.port
     primary = args.primary
     checkpoint_freq = args.checkpoint_freq
-    other_servers = [server for server in SERVERS if server.id != server_id]
+    servers = load_config()
+    other_servers = [server for server in servers if server.id != server_id]
     s = Server(server_id, port, primary, checkpoint_freq, other_servers, args.recover)
     s.start()

@@ -65,11 +65,11 @@ class GlobalFaultDetector():
         membercount = msg["membercount"]
         memberships = msg["memberships"]
 
-  def print_memberships(self, membercount, memberships):
-    p = f"RM: {membercount} members: "
-    for mem in memberships:
-      p += f"{mem}, "
-    print(p.rstrip(', '))
+    def print_memberships(self, membercount, memberships):
+        p = f"RM: {membercount} members: "
+        for mem in memberships:
+            p += f"{mem}, "
+        print(p.rstrip(', '))
 
 
 def getArgs():

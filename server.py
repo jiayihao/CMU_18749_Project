@@ -11,9 +11,6 @@ from color import print_color, COLOR_BLUE, COLOR_MAGENTA, COLOR_ORANGE, COLOR_RE
 
 
 IP = socket.gethostbyname("")
-# IP="127.0.0.1"
-# PORT = 7777
-# ADDR = (IP, PORT)
 SIZE = 1024
 FORMAT = "utf-8"
 DISCONNECT_MSG = "q"
@@ -29,12 +26,6 @@ class ServerType:
     id: str
     ip: str
     port: int
-
-SERVERS: List[ServerType] = [
-    ServerType('S1', 'localhost', 7777),
-    ServerType('S2', 'localhost', 8888),
-    ServerType('S3', 'localhost', 9999)
-]
 
 class Server(object):
     def __init__(self, server_id, port, primary: False, checkpoint_freq: int, other_servers: List[ServerType], recover = False):

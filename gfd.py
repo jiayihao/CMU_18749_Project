@@ -114,9 +114,10 @@ class GlobalFaultDetector():
         message = message.split()
         server_id = message[-1]
         if "add" in message:
-            self.memberships[server_id] = True
             if server_id not in self.memberships:
                 self.membercount += 1
+            self.memberships[server_id] = True
+            
         elif "delete" in message:
             self.memberships.pop(server_id)
             self.membercount -= 1

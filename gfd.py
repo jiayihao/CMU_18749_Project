@@ -2,6 +2,7 @@ import socket, argparse, time, json, threading, socket
 from color import * 
 
 PORT = 1234
+RM_PORT = 2001
 IP = socket.gethostbyname(socket.gethostname())
 LISTENING_INTERVAL = 3
 FORMAT = 'utf-8'
@@ -24,6 +25,8 @@ class GlobalFaultDetector():
     self.ip = ip 
     self.gfd_id = gfd_id
 
+    self.rm_alive = False
+
     # self.heartbeat_msg = {
     #      "header": "gfd",
     #      "gfd_id": self.gfd_id,
@@ -36,12 +39,17 @@ class GlobalFaultDetector():
     print()
     
     self.print_memberships()
+    self.notify_rm()
 
     self.gfd = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     self.gfd.bind( (self.ip, self.port) )
     self.gfd.listen()
   
   def start(self):
+    gfd_thread = threading.Thread(target=self.lanuch_rm_socket, args = ())
+    gfd_thread.daemon = True
+    gfd_thread.start()
+
     while True:
       conn, addr = self.gfd.accept()
       thread = threading.Thread(target=self.handle_lfd_connection, args = (conn, addr))
@@ -90,6 +98,7 @@ class GlobalFaultDetector():
               self.memberships.pop(server_id)
               self.membercount -= 1
               self.print_memberships()
+              self.notify_rm()
           else:
               print_color(lfd_id + ALIVE_MSG + "\n", COLOR_ORANGE)
       except Exception:
@@ -98,6 +107,7 @@ class GlobalFaultDetector():
           self.memberships.pop(server_id)
           self.membercount -= 1
           self.print_memberships()
+          self.notify_rm()
           conn.close()
           return
 
@@ -119,12 +129,50 @@ class GlobalFaultDetector():
       print_color(f"EXPECTED: {example_msg} such format", COLOR_MAGENTA)
       print()
     self.print_memberships()
+    self.notify_rm()
 
   def print_memberships(self):
     p = f"GFD: {self.membercount} members: "
     for mem in self.memberships:
       p += f"{mem}, "
     print(p.rstrip(', '))
+
+
+  def lanuch_rm_socket(self):
+        self.rm_addr = (IP, RM_PORT)
+        print(f"[STARTING] {self.gfd_id} connecting RM\n")
+        while not self.rm_alive:
+            try:
+                self.to_rm = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+                self.to_rm.connect(self.rm_addr)
+                data = {
+                    "header": "rm",
+                    "issue": "gfd to rm connect"
+                }
+
+                data = json.dumps(data).encode(FORMAT)
+                self.to_rm.send(data)
+                print(f"[CONNECTED] {self.gfd_id} connected to RM at {IP}:2000")
+                self.rm_alive = True
+            except Exception:
+                print(f"[FAILED!] Waiting for RM")
+                time.sleep(5)
+                continue
+  
+  def notify_rm(self):
+        self.rm_addr = (IP, RM_PORT)
+        to_rm = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        to_rm.connect(self.rm_addr)
+        to_rm_msg = {
+            "header": "rm",
+            "membercount": self.membercount,
+            "memberships": self.memberships,
+            "issue": "membership change"
+        }
+        to_rm_msg = json.dumps(to_rm_msg).encode(FORMAT)
+        to_rm.send(to_rm_msg)
+        
+        to_rm.close()
 
 def getArgs():
   parser = argparse.ArgumentParser()

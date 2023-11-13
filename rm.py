@@ -62,7 +62,7 @@ class GlobalFaultDetector():
     self.print_memberships(membercount, memberships)
 
   def print_memberships(self, membercount, memberships):
-    p = f"GFD: {membercount} members: "
+    p = f"RM: {membercount} members: "
     for mem in memberships:
       p += f"{mem}, "
     print(p.rstrip(', '))

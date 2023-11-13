@@ -33,10 +33,16 @@ class ServerType:
     ip: str
     port: int
 
+# SERVERS: List[ServerType] = [
+#     ServerType('S1', 'localhost', 7777),
+#     ServerType('S2', '172.26.86.73', 8888),
+#     ServerType('S3', '172.26.107.74', 9999)
+# ]
+
 SERVERS: List[ServerType] = [
     ServerType('S1', 'localhost', 7777),
-    ServerType('S2', '172.26.86.73', 8888),
-    ServerType('S3', '172.26.107.74', 9999)
+    ServerType('S2', 'localhost', 8888),
+    ServerType('S3', 'localhost', 9999)
 ]
 
 class Server(object):
@@ -151,6 +157,7 @@ class Server(object):
     def setup_other_servers(self):
         while True:
             threads = [] 
+            time.sleep(self.checkpoint_freq)
             for passive_server in self.passive_servers:
                 threads.append(threading.Thread(target = self.sent_checkpoint, \
                                                 name = f'Thread for server {passive_server.id}', \
@@ -159,7 +166,7 @@ class Server(object):
             for t in threads:
                 t.start()
             self.checkpoint_num += 1
-            time.sleep(self.checkpoint_freq)
+            
     
     def sent_checkpoint(self, server: ServerType, response_num: int, checkpoint_num: int):
         sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -206,7 +213,7 @@ def getArgs():
     parser = argparse.ArgumentParser()
     parser.add_argument('-s', dest='server_id', type=str, help='server_id to send')
     parser.add_argument('-p', dest='port', type=int, help='port')
-    parser.add_argument('-cf', dest='checkpoint_freq', type=int, help='checkpoint freqency')
+    parser.add_argument('-cf', dest='checkpoint_freq', type=int, help='checkpoint freqency', default=10)
     # true = primary, 0 = backup
     parser.add_argument('--primary', dest='primary', action='store_true', required=False, default=False)
     parser.add_argument('--recover', dest='recover', action='store_true', required=False, default=False)

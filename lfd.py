@@ -141,8 +141,8 @@ class LocalFaultDetector(object):
                 continue
 
     def lanuch_gfd_socket(self):
-        self.gfd_addr = (IP, GFD_PORT)
-        # self.gfd_addr = ("172.26.39.132", 1234)
+        # self.gfd_addr = (IP, GFD_PORT)
+        self.gfd_addr = ("172.26.17.110", 1234)
         print_color(f"[STARTING] {self.lfd_id} connecting GFD1\n", COLOR_ORANGE)
         while not self.gfd_alive:
             try:

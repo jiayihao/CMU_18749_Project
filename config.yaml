@@ -1,28 +1,28 @@
-servers:
-  - id: S1
-    ip: localhost
-    port: 7777
-  - id: S2
-    ip: localhost 
-    port: 8888
-  - id: S3
-    ip: localhost
-    port: 9999
-lfd:
-  - id: lfd1
-    ip: localhost
-    port: 9999
-  - id: lfd2
-    ip: localhost
-    port: 9999
-  - id: lfd3
-    ip: localhost
-    port: 9999
-gfd:
-  - id: gfd
-    ip: localhost
-    port: 9999
 rm:
   - id: rm
-    ip: localhost
+    ip: 172.26.17.110
+    port: 5555
+gfd:
+  - id: gfd
+    ip: 172.26.17.110
+    port: 1234
+servers:
+  - id: S1
+    ip: 172.26.70.7
+    port: 7777
+  - id: S2
+    ip: 172.26.65.202 
+    port: 8888
+  - id: S3
+    ip: 172.26.32.179
     port: 9999
+# lfd:
+#   - id: lfd1
+#     ip: localhost
+#     port: 9999
+#   - id: lfd2
+#     ip: localhost
+#     port: 9999
+#   - id: lfd3
+#     ip: localhost
+#     port: 9999

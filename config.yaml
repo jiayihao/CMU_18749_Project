@@ -8,7 +8,7 @@ gfd:
     port: 1234
 servers:
   - id: S1
-    ip: 172.26.70.7
+    ip: 172.26.16.167
     port: 7777
   - id: S2
     ip: 172.26.65.202 
@@ -16,13 +16,3 @@ servers:
   - id: S3
     ip: 172.26.32.179
     port: 9999
-# lfd:
-#   - id: lfd1
-#     ip: localhost
-#     port: 9999
-#   - id: lfd2
-#     ip: localhost
-#     port: 9999
-#   - id: lfd3
-#     ip: localhost
-#     port: 9999

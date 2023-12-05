@@ -6,13 +6,14 @@ import json
 import time
 import argparse
 import threading
-from color import *
+from utilities import *
 lock = threading.Lock()
 
 # IP = socket.gethostbyname(socket.gethostname())
 IP = "localhost"
 PORT = 7777
 ADDR = (IP, PORT)
+CLIENT_MSG_FREQ = 5
 SIZE = 1024
 FORMAT = "utf-8"
 DISCONNECT_MSG = "q"
@@ -38,7 +39,7 @@ class Client(object):
             sock.connect((ip, port))
             return True
         except Exception:
-            print("[FAIL!] Server "+ srv +" is unreachable.")
+            pass
             return False
 
     def exchange(self, sock, seq, svr_id) -> dict:
@@ -107,24 +108,22 @@ class Client(object):
 
         self.updating(msg)
 
-    def run(self, ip, port, svr):
+    def run(self):
+        servers = load_config("servers")
         while True:
-            print("\n")
-            t1 = threading.Thread(target=self.initialize, name='Thread_1', args = ("127.0.0.1", 7777, self.seq, "S1"))
-            t2 = threading.Thread(target=self.initialize, name='Thread_2', args = ("127.0.0.1", 8888, self.seq, "S2"))
-            t3 = threading.Thread(target=self.initialize, name='Thread_3', args = ("127.0.0.1", 9999, self.seq, "S3"))
-            t1.start()
-            t2.start()
-            t3.start()
-            time.sleep(5)
+            for server in servers:
+                t = threading.Thread(target=self.initialize, args = (server.ip, server.port, self.seq, server.id))
+                t.start()
+            time.sleep(CLIENT_MSG_FREQ)
+
 
 
 def getArgs():
     parser = argparse.ArgumentParser()
     parser.add_argument('-c', dest='client_id', type=str, help='client_id', default = "C1")
-    parser.add_argument('-s', dest='server_id', type=str, help='server_id', default = "S1")
-    parser.add_argument('-a', dest='server_IP', type=str, help='server_IP', default = IP)
-    parser.add_argument('-p', dest='server_port', type=str, help='server_port', default = PORT)
+    # parser.add_argument('-s', dest='server_id', type=str, help='server_id', default = "S1")
+    # parser.add_argument('-a', dest='server_IP', type=str, help='server_IP', default = IP)
+    # parser.add_argument('-p', dest='server_port', type=str, help='server_port', default = PORT)
     args = parser.parse_args()
     return args
 
@@ -132,4 +131,4 @@ def getArgs():
 if __name__ == '__main__':
     args = getArgs()
     c = Client(args.client_id)
-    c.run(args.server_IP, args.server_port, args.server_id)
+    c.run()

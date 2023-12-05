@@ -4,7 +4,7 @@ import time
 import json
 import threading
 import socket
-from color import *
+from utilities import *
 
 PORT = 1234
 RM_PORT = 2001
@@ -171,6 +171,7 @@ class GlobalFaultDetector():
         to_rm.send(to_rm_msg)
 
         to_rm.close()
+
 
 
 def getArgs():

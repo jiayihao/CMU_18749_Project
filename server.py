@@ -4,10 +4,7 @@ import threading
 import time
 import json
 import argparse 
-import yaml
-
-from dataclasses import dataclass
-from color import print_color, COLOR_BLUE, COLOR_MAGENTA, COLOR_ORANGE, COLOR_RED, COLOR_RESET
+from utilities import *
 
 
 IP = socket.gethostbyname("")
@@ -17,18 +14,16 @@ DISCONNECT_MSG = "q"
 LFD_HEADER = "lfd"
 CLIENT_HEADER = "client"
 CHECKPOINT_HEADER = "checkpoint"
+PRIMARY_HEADER="primary change"
+NEW_MEMBER_HEADER="new member"
 HEARTBEAT_RELPY = "Yes, I am."
 WAITING = "Waiting..."
 lock = threading.Lock()
 
-@dataclass
-class ServerType:
-    id: str
-    ip: str
-    port: int
 
 class Server(object):
-    def __init__(self, server_id, port, primary: False, checkpoint_freq: int, other_servers: List[ServerType], recover = False):
+    # def __init__(self, server_id, port, primary: False, checkpoint_freq: int, other_servers: List[InstanceType], recover = False, is_active = True):
+    def __init__(self, server_id, port, checkpoint_freq: int, other_servers: List[InstanceType], recover = False, is_active = True):
         self.server_id = server_id
         self.port = port
         self.my_state = WAITING
@@ -39,6 +34,8 @@ class Server(object):
         self.queue = []
         self.checkpoint_freq = checkpoint_freq
         self.recover = recover
+
+        self.is_active = is_active
         
         private_ip = socket.gethostbyname(socket.gethostname())
         print_color(f"[STARTING] Starting server on {private_ip}:{self.port}", COLOR_MAGENTA)
@@ -46,14 +43,16 @@ class Server(object):
         self.server.bind((IP, self.port))
         self.server.listen()
 
-        self.primary = primary
-        self.passive_servers: List[ServerType] = other_servers if primary else []
+        self.primary = is_active
+        self.passive_servers = other_servers
+        # self.passive_servers: List[InstanceType] = other_servers if primary else []
         # self.checkpoint = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         
     def start(self):
-        if self.primary:
+        if not self.is_active:
             # set up passive servers initilzation
             t = threading.Thread(target=self.setup_other_servers)
+            t.daemon = True
             t.start()
         
         while True:
@@ -77,11 +76,16 @@ class Server(object):
                     message = msg["message"]
                     heartbeat_count = msg["heartbeat_count"]
                     self.handle_lfd(conn, message, lfd_id, heartbeat_count)
-                elif header == CLIENT_HEADER and not self.recover:
+                # yichen
+                elif header == CLIENT_HEADER and not self.recover and ((not self.is_active and self.primary) or self.is_active):
                     self.handle_client(conn, msg, addr)
                 elif header == CHECKPOINT_HEADER:
                     self.handle_checkpoint(msg)
                     self.recover = False
+                elif header == PRIMARY_HEADER:
+                    self.primary_change(conn, addr, msg)
+                elif header == NEW_MEMBER_HEADER:
+                    self.new_membersip(conn, addr, msg)
                 else:
                     conn.close()
                     break
@@ -94,6 +98,18 @@ class Server(object):
                 self.active_connect -= 1
                 break
     
+    def primary_change(self, conn, addr, msg):
+        if msg["primary"] == self.server_id:
+            self.primary = True
+
+    def new_membersip(self, conn, addr, msg):
+        #给那个server发
+        if self.primary:
+            for passive_server in self.passive_servers:
+                if passive_server.id == msg["primary"]:
+                    self.sent_checkpoint([passive_server], self.response_num, self.checkpoint_num)
+                    break
+
     def handle_lfd(self, conn, msg, lfd_id, heartbeat_count):
         print_color(f"[{heartbeat_count}] Received {msg} from {lfd_id}", COLOR_ORANGE)
         conn.send(HEARTBEAT_RELPY.encode(FORMAT))
@@ -137,27 +153,29 @@ class Server(object):
             print_color("[{}] my_state_{} = {} after processing <{}, {}, {}, request>".format(self.get_time(), self.server_id, self.response_num, client_id, self.server_id, request_num), COLOR_MAGENTA)
     
     def setup_other_servers(self):
-        while True:
-            threads = [] 
-            time.sleep(self.checkpoint_freq)
-            for passive_server in self.passive_servers:
-                threads.append(threading.Thread(target = self.sent_checkpoint, \
-                                                name = f'Thread for server {passive_server.id}', \
-                                                args = (passive_server, self.response_num, \
-                                                        self.checkpoint_num)))
-            for t in threads:
-                t.start()
-            self.checkpoint_num += 1
+            while True:
+                if self.primary and not self.is_active:
+                    threads = []
+                    for passive_server in self.passive_servers:
+                        self.sent_checkpoint(passive_server, self.response_num, \
+                                                                self.checkpoint_num)
+                        threads.append(threading.Thread(target = self.sent_checkpoint, \
+                                                        name = f'Thread for server {passive_server.id}', \
+                                                        args = (passive_server, self.response_num, \
+                                                                self.checkpoint_num)))
+                    for t in threads:
+                        t.start()
+                    time.sleep(self.checkpoint_freq)
             
     
-    def sent_checkpoint(self, server: ServerType, response_num: int, checkpoint_num: int):
+    def sent_checkpoint(self, server: InstanceType, response_num: int, checkpoint_num: int):
         sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         if not self.connect(server, sock):
             return
         self.exchange(sock, server, response_num, checkpoint_num)
         sock.shutdown(socket.SHUT_RDWR)
         
-    def exchange(self, sock, server: ServerType, response_num: int, checkpoint_num: int) -> dict:
+    def exchange(self, sock, server: InstanceType, response_num: int, checkpoint_num: int) -> dict:
         # print(f"[{get_time()}] Sent <{self.cid}, {svr_id}, {seq}, request>")
         data = {
             "header": CHECKPOINT_HEADER,
@@ -173,7 +191,7 @@ class Server(object):
         except Exception:
             print("[FAIL!] Send Fail.")
 
-    def connect(self, server: ServerType, sock) -> bool:
+    def connect(self, server: InstanceType, sock) -> bool:
         try:
             sock.connect((server.ip, server.port))
             return True
@@ -197,25 +215,23 @@ def getArgs():
     parser.add_argument('-p', dest='port', type=int, help='port')
     parser.add_argument('-cf', dest='checkpoint_freq', type=int, help='checkpoint freqency', default=10)
     # true = primary, 0 = backup
-    parser.add_argument('--primary', dest='primary', action='store_true', required=False, default=False)
+    # parser.add_argument('--primary', dest='primary', action='store_true', required=False, default=False)
     parser.add_argument('--recover', dest='recover', action='store_true', required=False, default=False)
+
+    parser.add_argument('--active', dest='active', action='store_true', required=False, default=False)
     args = parser.parse_args()
     return args   
 
-def load_config():
-    with open('config.yaml') as f:
-        config = yaml.safe_load(f)
-
-    servers = [ServerType(**server) for server in config['servers']]
-    return servers
 
 if __name__ == '__main__':
     args = getArgs()
     server_id = args.server_id
     port = args.port
-    primary = args.primary
+    # primary = args.primary
     checkpoint_freq = args.checkpoint_freq
-    servers = load_config()
+    servers = load_config("servers")
     other_servers = [server for server in servers if server.id != server_id]
-    s = Server(server_id, port, primary, checkpoint_freq, other_servers, args.recover)
+    # s = Server(server_id, port, primary, checkpoint_freq, other_servers, args.recover, args.active)
+    s = Server(server_id, port, checkpoint_freq, other_servers, args.recover, args.active)
     s.start()
+    

@@ -3,7 +3,7 @@ import json
 import time
 import argparse
 import threading
-from color import *
+from utilities import *
 
 IP = socket.gethostbyname(socket.gethostname())
 GFD_PORT = 1234
@@ -142,7 +142,9 @@ class LocalFaultDetector(object):
 
     def lanuch_gfd_socket(self):
         # self.gfd_addr = (IP, GFD_PORT)
-        self.gfd_addr = ("172.26.17.110", 1234)
+        gfds = load_config("gfd")
+        gfd = gfds[0]
+        self.gfd_addr = (gfd.ip, gfd.port)
         print_color(f"[STARTING] {self.lfd_id} connecting GFD1\n", COLOR_ORANGE)
         while not self.gfd_alive:
             try:

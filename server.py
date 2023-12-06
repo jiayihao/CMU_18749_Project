@@ -102,6 +102,7 @@ class Server(object):
     def primary_change(self, conn, addr, msg):
         if msg["primary"] == self.server_id:
             self.primary = True
+            print("Primary set: I am primary :)",msg["primary"])
 
     def new_membersip(self, conn, addr, msg):
         #给那个server发

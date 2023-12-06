@@ -110,9 +110,13 @@ class Client(object):
 
     def run(self):
         servers = load_config("servers")
+        threads = []
         while True:
             for server in servers:
                 t = threading.Thread(target=self.initialize, args = (server.ip, server.port, self.seq, server.id))
+                threads.append(t)
+
+            for t in threads:    
                 t.start()
             time.sleep(CLIENT_MSG_FREQ)
 

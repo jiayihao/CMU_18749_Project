@@ -84,7 +84,6 @@ class ProjectManager():
       
     self.print_memberships(membercount, memberships)
     self.old_membership = memberships
-    print("444444444")
 
 
   def print_memberships(self, membercount, memberships):

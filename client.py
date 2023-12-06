@@ -102,22 +102,27 @@ class Client(object):
     def initialize(self, ip, port, seq, server_id):
         sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         if not self.connect(ip, port, sock,server_id): return
-
         msg = self.exchange(sock, seq, server_id)
         self.disconnect(sock)
-
         self.updating(msg)
 
     def run(self):
         servers = load_config("servers")
-        threads = []
+        mythreads = []
         while True:
-            for server in servers:
-                t = threading.Thread(target=self.initialize, args = (server.ip, server.port, self.seq, server.id))
-                threads.append(t)
+            # for server in servers:
+            #     t = threading.Thread(target=self.initialize, args = (server.ip, server.port, self.seq, server.id))
+            #     mythreads.append(t)
 
-            for t in threads:    
-                t.start()
+            # for t in mythreads:    
+            #     t.start()
+            t1 = threading.Thread(target=self.initialize, name='Thread_1', args = (servers[0].ip, servers[0].port, self.seq, "S1"))
+            t2 = threading.Thread(target=self.initialize, name='Thread_2', args = (servers[1].ip, servers[1].port, self.seq, "S2"))
+            t3 = threading.Thread(target=self.initialize, name='Thread_3', args = (servers[2].ip, servers[2].port, self.seq, "S3"))
+            t1.start()
+            t2.start()
+            t3.start()
+            time.sleep(5)
             time.sleep(CLIENT_MSG_FREQ)
 
 

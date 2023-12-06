@@ -102,8 +102,10 @@ class ProjectManager():
         "header": "primary change",
         "primary": prim_id
     }
+    
     to_server_prim_msg = json.dumps(to_server_prim_msg).encode(FORMAT)
     to_server_prim.send(to_server_prim_msg)
+    print("New primary is now ", prim_id)
     to_server_prim.close()
 
   def notify_new_membersip(self, new_id, server_addr):

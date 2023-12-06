@@ -86,6 +86,7 @@ class Server(object):
                     self.primary_change(conn, addr, msg)
                 elif header == NEW_MEMBER_HEADER:
                     self.new_membersip(conn, addr, msg)
+        
                 else:
                     conn.close()
                     break
@@ -104,10 +105,11 @@ class Server(object):
 
     def new_membersip(self, conn, addr, msg):
         #给那个server发
-        if self.primary:
+        if self.primary and self.is_active:
             for passive_server in self.passive_servers:
                 if passive_server.id == msg["primary"]:
-                    self.sent_checkpoint([passive_server], self.response_num, self.checkpoint_num)
+
+                    self.sent_checkpoint(passive_server, self.response_num, self.checkpoint_num)
                     break
 
     def handle_lfd(self, conn, msg, lfd_id, heartbeat_count):
@@ -157,8 +159,8 @@ class Server(object):
                 if self.primary and not self.is_active:
                     threads = []
                     for passive_server in self.passive_servers:
-                        self.sent_checkpoint(passive_server, self.response_num, \
-                                                                self.checkpoint_num)
+                        # self.sent_checkpoint(passive_server, self.response_num, \
+                        #                                         self.checkpoint_num)
                         threads.append(threading.Thread(target = self.sent_checkpoint, \
                                                         name = f'Thread for server {passive_server.id}', \
                                                         args = (passive_server, self.response_num, \
@@ -174,6 +176,7 @@ class Server(object):
             return
         self.exchange(sock, server, response_num, checkpoint_num)
         sock.shutdown(socket.SHUT_RDWR)
+        self.checkpoint_num+=1
         
     def exchange(self, sock, server: InstanceType, response_num: int, checkpoint_num: int) -> dict:
         # print(f"[{get_time()}] Sent <{self.cid}, {svr_id}, {seq}, request>")

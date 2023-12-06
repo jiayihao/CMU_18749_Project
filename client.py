@@ -39,11 +39,9 @@ class Client(object):
             sock.connect((ip, port))
             return True
         except Exception:
-            pass
             return False
 
     def exchange(self, sock, seq, svr_id) -> dict:
-        print(f"[{get_time()}] Sent <{self.cid}, {svr_id}, {seq}, request>")
         data = {
                     "header": "client",
                     "client_id": self.cid,
@@ -53,12 +51,12 @@ class Client(object):
                 }
         try:
             sock.send(json.dumps(data).encode(FORMAT))
-            
         except Exception:
             #print("[FAIL!] Send Fail.")
             pass
-           
+        
         msg = dict()
+
         try:
             message = sock.recv(1024).decode(FORMAT)
             message = json.loads(message)
@@ -66,8 +64,9 @@ class Client(object):
             msg["request_num"] = message["request_num"]
             msg["message"] = message["message"]
         except Exception:
-            pass
+            return None
 
+        print(f"[{get_time()}] Sent <{self.cid}, {svr_id}, {seq}, request>")
         return msg
 
     def check_duplication(self, seq: int) -> bool:
@@ -99,10 +98,12 @@ class Client(object):
             sock.shutdown(socket.SHUT_RDWR)
         except Exception:
             pass
+
     def initialize(self, ip, port, seq, server_id):
         sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         if not self.connect(ip, port, sock,server_id): return
         msg = self.exchange(sock, seq, server_id)
+        if not msg: return
         self.disconnect(sock)
         self.updating(msg)
 
@@ -111,8 +112,7 @@ class Client(object):
         mythreads = []
         while True:
             # for server in servers:
-            #     t = threading.Thread(target=self.initialize, args = (server.ip, server.port, self.seq, server.id))
-            #     mythreads.append(t)
+            #     mythreads.append(threading.Thread(target=self.initialize, args = (server.ip, server.port, self.seq, server.id)))
 
             # for t in mythreads:    
             #     t.start()
@@ -122,7 +122,6 @@ class Client(object):
             t1.start()
             t2.start()
             t3.start()
-            time.sleep(5)
             time.sleep(CLIENT_MSG_FREQ)
 
 

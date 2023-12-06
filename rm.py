@@ -1,7 +1,7 @@
 import socket, argparse, time, json, threading, socket
 from utilities import * 
 
-PORT = 2001
+PORT = 5555
 IP = socket.gethostbyname(socket.gethostname())
 FORMAT = 'utf-8'
 SIZE = 1024
@@ -65,14 +65,14 @@ class ProjectManager():
     
     if (self.rm_active == False):
       if ((self.primary == "") or (self.primary not in memberships.keys())): # only passive need to consider primary change
-        self.primary = memberships.keys()[0]
+        self.primary = next(iter(memberships.keys()))
         for server in self.servers:
           try:
             self.notify_primary_change(self.primary, (server.ip, server.port))
           except Exception:
             pass  
 
-    # member ++
+    # member++
     for mem in memberships:
       if mem not in self.old_membership.keys():
         for server in self.servers:
@@ -84,6 +84,7 @@ class ProjectManager():
       
     self.print_memberships(membercount, memberships)
     self.old_membership = memberships
+    print("444444444")
 
 
   def print_memberships(self, membercount, memberships):

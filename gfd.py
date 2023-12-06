@@ -7,7 +7,7 @@ import socket
 from utilities import *
 
 PORT = 1234
-RM_PORT = 2001
+RM_PORT = 5555
 IP = socket.gethostbyname(socket.gethostname())
 LISTENING_INTERVAL = 3
 FORMAT = 'utf-8'

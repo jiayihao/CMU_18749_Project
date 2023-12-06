@@ -64,6 +64,8 @@ class ProjectManager():
     memberships = msg["memberships"]
     
     if (self.rm_active == False):
+      if memberships=={}:
+        print("RM: 0 members: ")
       if ((self.primary == "") or (self.primary not in memberships.keys())): # only passive need to consider primary change
         self.primary = next(iter(memberships.keys()))
         for server in self.servers:

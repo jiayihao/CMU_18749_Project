@@ -106,11 +106,12 @@ class Server(object):
     def new_membersip(self, conn, addr, msg):
         #给那个server发
         if self.primary and self.is_active:
+            
             for passive_server in self.passive_servers:
                 if passive_server.id == msg["primary"]:
-
                     self.sent_checkpoint(passive_server, self.response_num, self.checkpoint_num)
                     break
+            self.checkpoint_num += 1
 
     def handle_lfd(self, conn, msg, lfd_id, heartbeat_count):
         print_color(f"[{heartbeat_count}] Received {msg} from {lfd_id}", COLOR_ORANGE)
@@ -165,6 +166,7 @@ class Server(object):
                                                         name = f'Thread for server {passive_server.id}', \
                                                         args = (passive_server, self.response_num, \
                                                                 self.checkpoint_num)))
+                    self.checkpoint_num+=1
                     for t in threads:
                         t.start()
                     time.sleep(self.checkpoint_freq)
@@ -176,7 +178,7 @@ class Server(object):
             return
         self.exchange(sock, server, response_num, checkpoint_num)
         sock.shutdown(socket.SHUT_RDWR)
-        self.checkpoint_num+=1
+        
         
     def exchange(self, sock, server: InstanceType, response_num: int, checkpoint_num: int) -> dict:
         # print(f"[{get_time()}] Sent <{self.cid}, {svr_id}, {seq}, request>")

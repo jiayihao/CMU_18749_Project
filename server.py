@@ -214,6 +214,9 @@ class Server(object):
 
     def get_time(self):
         return time.strftime("%Y-%m-%d %H:%M:%S", time.localtime())
+
+    def close(self):
+        self.server.close()
         
 def getArgs():
     parser = argparse.ArgumentParser()
@@ -228,8 +231,8 @@ def getArgs():
     args = parser.parse_args()
     return args   
 
-
 if __name__ == '__main__':
+    
     args = getArgs()
     server_id = args.server_id
     port = args.port
@@ -238,6 +241,14 @@ if __name__ == '__main__':
     servers = load_config("servers")
     other_servers = [server for server in servers if server.id != server_id]
     # s = Server(server_id, port, primary, checkpoint_freq, other_servers, args.recover, args.active)
-    s = Server(server_id, port, checkpoint_freq, other_servers, args.recover, args.active)
-    s.start()
+    while True:
+        try:
+            s = Server(server_id, port, checkpoint_freq, other_servers, args.recover, args.active)
+            s.start()
+        except KeyboardInterrupt:
+            s.close()
+            print("Waiting for restart server........")
+            time.sleep(1)
+            continue
+
     

@@ -169,6 +169,7 @@ class Server(object):
                                                                 self.checkpoint_num)))
                     self.checkpoint_num+=1
                     for t in threads:
+                        t.daemon = True
                         t.start()
                     time.sleep(self.checkpoint_freq)
             
@@ -214,9 +215,7 @@ class Server(object):
 
     def get_time(self):
         return time.strftime("%Y-%m-%d %H:%M:%S", time.localtime())
-
-    def close(self):
-        self.server.close()
+    
         
 def getArgs():
     parser = argparse.ArgumentParser()
@@ -240,15 +239,5 @@ if __name__ == '__main__':
     checkpoint_freq = args.checkpoint_freq
     servers = load_config("servers")
     other_servers = [server for server in servers if server.id != server_id]
-    # s = Server(server_id, port, primary, checkpoint_freq, other_servers, args.recover, args.active)
-    while True:
-        try:
-            s = Server(server_id, port, checkpoint_freq, other_servers, args.recover, args.active)
-            s.start()
-        except KeyboardInterrupt:
-            s.close()
-            print("Waiting for restart server........")
-            time.sleep(1)
-            continue
-
-    
+    s = Server(server_id, port, checkpoint_freq, other_servers, args.recover, args.active)
+    s.start()    

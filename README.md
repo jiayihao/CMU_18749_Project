@@ -1,6 +1,4 @@
-# cmu_18749
-
-[ROADMAP](https://docs.google.com/document/d/1fr6UlXmZ4OmYD6f2gfefS0EmnmWwcWCjtbjEaJdLPbI/edit)
+# Building Reliable Distributed Systems
 
 ## Instructions
 

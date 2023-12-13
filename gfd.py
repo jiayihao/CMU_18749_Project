@@ -6,9 +6,10 @@ import threading
 import socket
 from utilities import *
 
-PORT = 1234
+PORT = 12345
 RM_PORT = 5555
 IP = socket.gethostbyname(socket.gethostname())
+# IP = "127.0.0.1"
 LISTENING_INTERVAL = 3
 FORMAT = 'utf-8'
 SIZE = 1024
@@ -188,7 +189,7 @@ def main():
     args = getArgs()
     hb = args.heartbeat_freq
     gfd_id = args.gfd_id
-    gfd = GlobalFaultDetector(gfd_id, hb)
+    gfd = GlobalFaultDetector(gfd_id, hb, ip = load_config("gfd")[0].ip, port = load_config("gfd")[0].port)
     gfd.start()
 
 

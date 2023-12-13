@@ -28,7 +28,7 @@ def usage_validation(reference: float):
 if __name__ == "__main__":
     reference = collect()
     print("Start Memory Usage Monitoring...")
-    threshold = reference * 1.05
+    threshold = reference * 1.02
     print_color(f"Memory Usage Threashold: {threshold}%", COLOR_ORANGE)
     while True:
         usage_validation(threshold)

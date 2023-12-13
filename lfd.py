@@ -141,7 +141,6 @@ class LocalFaultDetector(object):
                 continue
 
     def lanuch_gfd_socket(self):
-        # self.gfd_addr = (IP, GFD_PORT)
         gfds = load_config("gfd")
         gfd = gfds[0]
         self.gfd_addr = (gfd.ip, gfd.port)

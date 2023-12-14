@@ -1,6 +1,8 @@
 # Building Reliable Distributed Systems
 
-## Instructions
+Instructions references.
+
+## Main Part
 
 Replica Manager: (active)
 - python rm.py -r RM --active
@@ -26,3 +28,11 @@ Server (passive):
 
 Client:
 - python client.py -c C1
+
+## Extra Credit Part
+
+Black-Box metrics monitoring:
+- python monitor.py
+
+## Failure simulator (Memory consumer):
+- python failure.py

@@ -34,5 +34,5 @@ Client:
 Black-Box metrics monitoring:
 - python monitor.py
 
-## Failure simulator (Memory consumer):
+Failure simulator (Memory consumer):
 - python failure.py
